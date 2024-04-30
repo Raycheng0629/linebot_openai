@@ -77,7 +77,41 @@ def welcome(event):
     name = profile.display_name
     message = TextSendMessage(text=f'{name}歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
-        
+    
+#---
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    msg = event.message.text
+    if msg == '爬蟲':
+        crawl_weather_data()
+    else:
+        try:
+            GPT_answer = GPT_response(msg)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(GPT_answer))
+        except:
+            print(traceback.format_exc())
+            line_bot_api.reply_message(event.reply_token, TextSendMessage('發生錯誤'))
+
+import json
+
+def crawl_weather_data():
+    file_path = r"/content/F-C0032-001.json"
+
+    with open(file_path, 'r') as file:
+        data_json = json.load(file)
+
+location = data_json['cwaopendata']['dataset']['location']
+for i in location:
+    city = i['locationName']    # 縣市名稱
+    wx8 = i['weatherElement'][0]['time'][0]['parameter']['parameterName']    # 天氣現象
+    maxt8 = i['weatherElement'][1]['time'][0]['parameter']['parameterName']  # 最高溫
+    mint8 = i['weatherElement'][2]['time'][0]['parameter']['parameterName']  # 最低溫
+    ci8 = i['weatherElement'][3]['time'][0]['parameter']['parameterName']    # 舒適度
+    pop8 = i['weatherElement'][4]['time'][0]['parameter']['parameterName']   # 降雨機率
+    print(f'{city}未來 8 小時{wx8}，最高溫 {maxt8} 度，最低溫 {mint8} 度，降雨機率 {pop8} %')
+
+
+#---
         
 import os
 if __name__ == "__main__":
