@@ -78,7 +78,39 @@ def welcome(event):
     message = TextSendMessage(text=f'{name}歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
     
-#---
+#--------------
+@handler.add(MessageEvent, message=TextMessage)
+# 引入必要的函式庫
+import requests
+from bs4 import BeautifulSoup
+
+# 定義網路爬蟲函式
+def crawl_weather_data(reply_token):
+    # PTT 電影版的網址
+    url = "https://www.ptt.cc/bbs/movie/index.html"
+    
+    # 發送 GET 請求獲取網頁內容
+    response = requests.get(url)
+    
+    # 使用 BeautifulSoup 解析網頁內容
+    soup = BeautifulSoup(response.text, "html.parser")
+    
+    # 找到所有文章標題的元素
+    articles = soup.find_all("div", class_="title")
+    
+    # 初始化回應訊息
+    response_message = ""
+    
+    # 提取文章標題並組合成回應訊息
+    for article in articles:
+        title = article.text.strip()  # 去除空白字符
+        response_message += f"{title}\n"
+    
+    # 回覆訊息給使用者
+    line_bot_api.reply_message(reply_token, TextSendMessage(response_message))
+
+
+# 在 handle_message 函式中加入對「爬蟲」訊息的處理
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     msg = event.message.text
@@ -92,27 +124,9 @@ def handle_message(event):
             print(traceback.format_exc())
             line_bot_api.reply_message(event.reply_token, TextSendMessage('發生錯誤'))
 
-import json
-
-def crawl_weather_data(reply_token):
-    file_path = r"/content/F-C0032-001.json"
-
-    with open(file_path, 'r') as file:
-        data_json = json.load(file)
-
-    location = data_json['cwaopendata']['dataset']['location']
-    for i in location:
-        city = i['locationName']    # 縣市名稱
-        wx8 = i['weatherElement'][0]['time'][0]['parameter']['parameterName']    # 天氣現象
-        maxt8 = i['weatherElement'][1]['time'][0]['parameter']['parameterName']  # 最高溫
-        mint8 = i['weatherElement'][2]['time'][0]['parameter']['parameterName']  # 最低溫
-        ci8 = i['weatherElement'][3]['time'][0]['parameter']['parameterName']    # 舒適度
-        pop8 = i['weatherElement'][4]['time'][0]['parameter']['parameterName']   # 降雨機率
-        message = f'{city}未來 8 小時{wx8}，最高溫 {maxt8} 度，最低溫 {mint8} 度，降雨機率 {pop8} %'
-        line_bot_api.reply_message(reply_token, TextSendMessage(message))
 
 
-#---
+#-----------------
         
 import os
 if __name__ == "__main__":
