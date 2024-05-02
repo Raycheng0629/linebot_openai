@@ -28,7 +28,7 @@ def GPT_response(text):
     response = openai.Completion.create(model="gpt-3.5-turbo-instruct", prompt=text, temperature=0.5, max_tokens=500)
     print(response)
     # 重組回應
-    answer = response['choices'][0]['text'].replace('。','')
+    answer = response['choices'][0]['text'].replace('。','') 
     return answer
 
 
