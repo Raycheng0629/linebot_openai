@@ -1,6 +1,11 @@
 from flask import Flask, request, abort
-from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
+
+from linebot import (
+    LineBotApi, WebhookHandler
+)
+from linebot.exceptions import (
+    InvalidSignatureError
+)
 from linebot.models import *
 
 #======python的函數庫==========
@@ -9,8 +14,6 @@ import datetime
 import openai
 import time
 import traceback
-import requests
-from bs4 import BeautifulSoup
 #======python的函數庫==========
 
 app = Flask(__name__)
@@ -28,36 +31,8 @@ def GPT_response(text):
     response = openai.Completion.create(model="gpt-3.5-turbo-instruct", prompt=text, temperature=0.5, max_tokens=500)
     print(response)
     # 重組回應
-    answer = response['choices'][0]['text'].replace('。','') 
+    answer = response['choices'][0]['text'].replace('。','')
     return answer
-
-
-def crawl_ptt():
-    url = "https://www.ptt.cc/bbs/movie/index.html"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    articles = soup.find_all("div", class_="r-ent")
-    result = ""
-    for a in articles:
-        title = a.find("div", class_="title")
-        if title and title.a:
-            title = title.a.text
-        else:
-            title = "沒有標題"
-
-        popular = a.find("div", class_="nrec")
-        if popular and popular.span:
-            popular = popular.span.text
-        else:
-            popular = "N/A"
-
-        date = a.find("div", class_="date")
-        if date:
-            date = date.text
-        else:
-            date = "無顯示日期"
-        result += f"標題:{title},人氣:{popular},日期:{date}\n"
-    return result
 
 
 # 監聽所有來自 /callback 的 Post Request
@@ -80,22 +55,14 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     msg = event.message.text
-    if msg == "爬蟲":
-        try:
-            result = crawl_ptt()
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(result))
-        except Exception as e:
-            print(traceback.format_exc())
-            line_bot_api.reply_message(event.reply_token, TextSendMessage('執行爬蟲時發生錯誤。'))
-    else:
-        try:
-            GPT_answer = GPT_response(msg)
-            print(GPT_answer)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(GPT_answer))
-        except:
-            print(traceback.format_exc())
-            line_bot_api.reply_message(event.reply_token, TextSendMessage('你所使用的OPENAI API key額度可能已經超過，請於後台Log內確認錯誤訊息'))
-
+    try:
+        GPT_answer = GPT_response(msg)
+        print(GPT_answer)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(GPT_answer))
+    except:
+        print(traceback.format_exc())
+        line_bot_api.reply_message(event.reply_token, TextSendMessage('你所使用的OPENAI API key額度可能已經超過，請於後台Log內確認錯誤訊息'))
+        
 
 @handler.add(PostbackEvent)
 def handle_message(event):
@@ -110,9 +77,10 @@ def welcome(event):
     name = profile.display_name
     message = TextSendMessage(text=f'{name}歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
-
-
+        
+        
 import os
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
