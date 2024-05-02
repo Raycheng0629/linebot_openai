@@ -1,13 +1,17 @@
 from flask import Flask, request, abort
-import json
-
-from linebot import (
-    LineBotApi, WebhookHandler
-)
-from linebot.exceptions import (
-    InvalidSignatureError
-)
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
 from linebot.models import *
+
+#======python的函數庫==========
+import tempfile, os
+import datetime
+import openai
+import time
+import traceback
+import requests
+from bs4 import BeautifulSoup
+#======python的函數庫==========
 
 app = Flask(__name__)
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
@@ -15,11 +19,46 @@ static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
+# OPENAI API Key初始化設定
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-file_path = r"/content/F-C0032-001.json"
 
-with open(file_path, 'r') as file:
-    data_json = json.load(file)
+def GPT_response(text):
+    # 接收回應
+    response = openai.Completion.create(model="gpt-3.5-turbo-instruct", prompt=text, temperature=0.5, max_tokens=500)
+    print(response)
+    # 重組回應
+    answer = response['choices'][0]['text'].replace('。','')
+    return answer
+
+
+def crawl_ptt():
+    url = "https://www.ptt.cc/bbs/movie/index.html"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, "html.parser")
+    articles = soup.find_all("div", class_="r-ent")
+    result = ""
+    for a in articles:
+        title = a.find("div", class_="title")
+        if title and title.a:
+            title = title.a.text
+        else:
+            title = "沒有標題"
+
+        popular = a.find("div", class_="nrec")
+        if popular and popular.span:
+            popular = popular.span.text
+        else:
+            popular = "N/A"
+
+        date = a.find("div", class_="date")
+        if date:
+            date = date.text
+        else:
+            date = "無顯示日期"
+        result += f"標題:{title},人氣:{popular},日期:{date}\n"
+    return result
+
 
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
@@ -41,43 +80,27 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     msg = event.message.text
-    try:
-        city_data = find_city_data(msg)
-        if city_data:
-            reply_message = generate_weather_response(city_data)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(reply_message))
-        else:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage("抱歉，找不到該城市的天氣資訊。"))
-    except:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage('處理訊息時發生錯誤。'))
-# 處理訊息
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    msg = event.message.text
-    if msg in ["台北", "新北", "桃園", "台中", "台南", "高雄"]:  # 在這裡列出你希望觸發天氣查詢的城市名稱
+    if msg == "爬蟲":
         try:
-            city_data = find_city_data(msg)
-            if city_data:
-                reply_message = generate_weather_response(city_data)
-                line_bot_api.reply_message(event.reply_token, TextSendMessage(reply_message))
-            else:
-                line_bot_api.reply_message(event.reply_token, TextSendMessage("抱歉，找不到該城市的天氣資訊。"))
+            result = crawl_ptt()
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(result))
+        except Exception as e:
+            print(traceback.format_exc())
+            line_bot_api.reply_message(event.reply_token, TextSendMessage('執行爬蟲時發生錯誤。'))
+    else:
+        try:
+            GPT_answer = GPT_response(msg)
+            print(GPT_answer)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(GPT_answer))
         except:
-            line_bot_api.reply_message(event.reply_token, TextSendMessage('處理訊息時發生錯誤。'))
+            print(traceback.format_exc())
+            line_bot_api.reply_message(event.reply_token, TextSendMessage('你所使用的OPENAI API key額度可能已經超過，請於後台Log內確認錯誤訊息'))
 
-def find_city_data(city_name):
-    for location in data_json['cwaopendata']['dataset']['location']:
-        if location['locationName'] == city_name:
-            return location
-    return None
 
-def generate_weather_response(city_data):
-    wx8 = city_data['weatherElement'][0]['time'][0]['parameter']['parameterName']    # 天氣現象
-    maxt8 = city_data['weatherElement'][1]['time'][0]['parameter']['parameterName']  # 最高溫
-    mint8 = city_data['weatherElement'][2]['time'][0]['parameter']['parameterName']  # 最低溫
-    pop8 = city_data['weatherElement'][4]['time'][0]['parameter']['parameterName']   # 降雨機率
-    reply_message = f"{city_data['locationName']}未來 8 小時{wx8}，最高溫 {maxt8} 度，最低溫 {mint8} 度，降雨機率 {pop8} %"
-    return reply_message
+@handler.add(PostbackEvent)
+def handle_message(event):
+    print(event.postback.data)
+
 
 @handler.add(MemberJoinedEvent)
 def welcome(event):
@@ -87,11 +110,9 @@ def welcome(event):
     name = profile.display_name
     message = TextSendMessage(text=f'{name}歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
-        
-        
+
+
 import os
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
-
