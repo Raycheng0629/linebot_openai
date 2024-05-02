@@ -1,4 +1,5 @@
 from flask import Flask, request, abort
+import json
 
 from linebot import (
     LineBotApi, WebhookHandler
@@ -8,32 +9,17 @@ from linebot.exceptions import (
 )
 from linebot.models import *
 
-#======python的函數庫==========
-import tempfile, os
-import datetime
-import openai
-import time
-import traceback
-#======python的函數庫==========
-
 app = Flask(__name__)
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 # Channel Access Token
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
-# OPENAI API Key初始化設定
-openai.api_key = os.getenv('OPENAI_API_KEY')
 
+file_path = r"/content/F-C0032-001.json"
 
-def GPT_response(text):
-    # 接收回應
-    response = openai.Completion.create(model="gpt-3.5-turbo-instruct", prompt=text, temperature=0.5, max_tokens=500)
-    print(response)
-    # 重組回應
-    answer = response['choices'][0]['text'].replace('。','')
-    return answer
-
+with open(file_path, 'r') as file:
+    data_json = json.load(file)
 
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
@@ -56,18 +42,42 @@ def callback():
 def handle_message(event):
     msg = event.message.text
     try:
-        GPT_answer = GPT_response(msg)
-        print(GPT_answer)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(GPT_answer))
+        city_data = find_city_data(msg)
+        if city_data:
+            reply_message = generate_weather_response(city_data)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(reply_message))
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage("抱歉，找不到該城市的天氣資訊。"))
     except:
-        print(traceback.format_exc())
-        line_bot_api.reply_message(event.reply_token, TextSendMessage('你所使用的OPENAI API key額度可能已經超過，請於後台Log內確認錯誤訊息'))
-        
-
-@handler.add(PostbackEvent)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage('處理訊息時發生錯誤。'))
+# 處理訊息
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    print(event.postback.data)
+    msg = event.message.text
+    if msg in ["台北", "新北", "桃園", "台中", "台南", "高雄"]:  # 在這裡列出你希望觸發天氣查詢的城市名稱
+        try:
+            city_data = find_city_data(msg)
+            if city_data:
+                reply_message = generate_weather_response(city_data)
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(reply_message))
+            else:
+                line_bot_api.reply_message(event.reply_token, TextSendMessage("抱歉，找不到該城市的天氣資訊。"))
+        except:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage('處理訊息時發生錯誤。'))
 
+def find_city_data(city_name):
+    for location in data_json['cwaopendata']['dataset']['location']:
+        if location['locationName'] == city_name:
+            return location
+    return None
+
+def generate_weather_response(city_data):
+    wx8 = city_data['weatherElement'][0]['time'][0]['parameter']['parameterName']    # 天氣現象
+    maxt8 = city_data['weatherElement'][1]['time'][0]['parameter']['parameterName']  # 最高溫
+    mint8 = city_data['weatherElement'][2]['time'][0]['parameter']['parameterName']  # 最低溫
+    pop8 = city_data['weatherElement'][4]['time'][0]['parameter']['parameterName']   # 降雨機率
+    reply_message = f"{city_data['locationName']}未來 8 小時{wx8}，最高溫 {maxt8} 度，最低溫 {mint8} 度，降雨機率 {pop8} %"
+    return reply_message
 
 @handler.add(MemberJoinedEvent)
 def welcome(event):
@@ -83,4 +93,5 @@ import os
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
 
