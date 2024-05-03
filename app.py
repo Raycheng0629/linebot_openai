@@ -28,7 +28,7 @@ def earth_quake():
         
         result = [eq1['ReportContent'], eq1['ReportImageURI']] # 先使用小區域地震
         if t2>t1:
-          result = [eq2['ReportContent'], eq2['ReportImageURI']] # 如果顯著有感地震時間較近，就用顯著有感地震
+            result = [eq2['ReportContent'], eq2['ReportImageURI']] # 如果顯著有感地震時間較近，就用顯著有感地震
     except Exception as e:
         print(e)
         result = ['抓取失敗...','']
@@ -134,8 +134,8 @@ def cctv(msg):
 
 
 
-access_token = '5P7RUl8NwthjuSPZvo8eGR0XNToFXesvPkBcJdpmvHab2pgus1PenUaO43WfO4U+hO/tzsLZHm+h+dpayZ5cwVh4XwBS+OZeB/lGwSxpoP04000GM4FcdU6553pPue5KGa/HIqybLn/OcSA/wNEfxgdB04t89/1O/w1cDnyilFU='
-channel_secret = '82834ecbcd9989b5e1723a193c85ee72'
+access_token = 'CHANNEL_ACCESS_TOKEN'
+channel_secret = 'CHANNEL_SECRET'
 
 @app.route("/", methods=['POST'])
 def linebot():
