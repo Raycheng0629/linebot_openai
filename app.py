@@ -77,18 +77,20 @@ def choose_fortune(weather):
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
 
 @handler.add(MessageEvent, message=TextMessage)
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
     message = event.message.text
     if message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='你那邊天氣如何？'))
-        return
-    elif user_id in user_weather:
-        weather = user_weather[user_id]
-        fortune = choose_fortune(weather)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
+        if user_id in user_weather:  # 檢查使用者是否已提供天氣狀況
+            weather = user_weather[user_id]
+            fortune = choose_fortune(weather)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請先提供你那邊的天氣狀況。'))
     else:
         print("天氣狀況無法辨識")
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
