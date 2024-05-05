@@ -66,8 +66,8 @@ def welcome(event):
 def linebot():
     body = request.get_data(as_text=True)                 # 取得收到的訊息內容
     try:
-        line_bot_api = LineBotApi(access_token)           # 確認 token 是否正確
-        handler = WebhookHandler(channel_secret)          # 確認 secret 是否正確
+        line_bot_api = (os.getenv('CHANNEL_ACCESS_TOKEN'))           # 確認 token 是否正確
+        handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))         # 確認 secret 是否正確
         signature = request.headers['X-Line-Signature']   # 加入回傳的 headers
         handler.handle(body, signature)      # 綁定訊息回傳的相關資訊
         json_data = json.loads(body)         # 轉換內容為 json 格式
