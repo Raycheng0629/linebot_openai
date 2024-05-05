@@ -113,7 +113,7 @@ def weather(address):
     return output
 
 @app.route("/", methods=['POST'])
-def linebot():
+def linebot(text):
     body = request.get_data(as_text=True)                    # 取得收到的訊息內容
     try:
         line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))    # 確認 token 是否正確
