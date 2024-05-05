@@ -9,15 +9,19 @@ from linebot.models import *
 import random  # 引入隨機模組
 import os
 
+
 app = Flask(__name__)
+
 
 # Channel Access Token
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
+
 # 記錄使用者輸入的天氣狀況
 user_weather = {}
+
 
 # 隨機選擇運勢結果
 def choose_fortune(weather):
@@ -59,17 +63,20 @@ def choose_fortune(weather):
         ]
     }
 
+
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
+
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = event.message.text
     if message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（例如：晴天、陰天等）。'))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
     elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
         weather = message
         fortune = choose_fortune(weather)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
+
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -82,6 +89,12 @@ def callback():
         abort(400)
     return 'OK'
 
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+
+
+
