@@ -7,6 +7,11 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSendMessage, ImageSendMessage, LocationSendMessage
 
 app = Flask(__name__)
+static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
+# Channel Access Token
+line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
+# Channel Secret
+handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
 
 def earth_quake():
@@ -66,15 +71,12 @@ def weather(address):
         output = '抓取失敗...'
     return output
 
-CHANNEL_ACCESS_TOKEN= '5P7RUl8NwthjuSPZvo8eGR0XNToFXesvPkBcJdpmvHab2pgus1PenUaO43WfO4U+hO/tzsLZHm+h+dpayZ5cwVh4XwBS+OZeB/lGwSxpoP04000GM4FcdU6553pPue5KGa/HIqybLn/OcSA/wNEfxgdB04t89/1O/w1cDnyilFU='
-CHANNEL_SECRET = '82834ecbcd9989b5e1723a193c85ee72'
-
 @app.route("/", methods=['POST'])
 def linebot():
     body = request.get_data(as_text=True)                    # 取得收到的訊息內容
     try:
-        line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)     # 確認 token 是否正確
-        handler = WebhookHandler(CHANNEL_SECRET)    # 確認 secret 是否正確
+        line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))    # 確認 token 是否正確
+        handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))        # 確認 secret 是否正確
         signature = request.headers['X-Line-Signature']             # 加入回傳的 headers
         handler.handle(body, signature)      # 綁定訊息回傳的相關資訊
         json_data = json.loads(body)         # 轉換內容為 json 格式
