@@ -16,6 +16,7 @@ import openai
 import time
 import traceback
 import json
+import re
 #======python的函數庫==========
 
 app = Flask(__name__)
@@ -28,22 +29,7 @@ handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
 
 
-import re
 
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    user_message = event.message.text
-    # 檢查訊息是否包含爬蟲相關字詞
-    if re.search(r'爬蟲', user_message, re.IGNORECASE):
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="好的沒問題!!")
-        )
-    else:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="收到訊息，但不是爬蟲。")
-        )
 
 
 # 監聽所有來自 /callback 的 Post Request
