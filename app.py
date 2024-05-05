@@ -9,6 +9,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSe
 from linebot.models import PostbackEvent, MemberJoinedEvent
 
 
+
 app = Flask(__name__)
 static_tmp_path = os.path.join(os.path.dirname(__file__), 'static', 'tmp')
 # Channel Access Token
@@ -47,6 +48,12 @@ def welcome(event):
     name = profile.display_name
     message = TextSendMessage(text=f'{name}歡迎加入')
     line_bot_api.reply_message(event.reply_token, message)
+
+def handle_location_message(event):
+    # 在這裡處理接收到的位置資訊
+    latitude = event.message.latitude
+    longitude = event.message.longitude
+    address = event.message.address
         
 def earth_quake():
     result = []
@@ -146,3 +153,5 @@ def linebot():
 
 if __name__ == "__main__":
     app.run()
+
+
