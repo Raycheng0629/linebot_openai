@@ -66,9 +66,7 @@ def handle_message(event):
     user_id = event.source.user_id
     message = event.message.text
     if message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='你那邊天氣如何？'))
-    elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
-        user_weather[user_id] = message  # 將使用者輸入的天氣狀況記錄下來
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='你那邊天氣如何？(晴天,晴時多雲,雨天,陰天,多雲):'))
     elif user_id in user_weather:
         weather = user_weather[user_id]
         fortune = choose_fortune(weather)
