@@ -8,7 +8,7 @@ from linebot.exceptions import (
 from linebot.models import *
 import requests
 import os
-
+import random
 app = Flask(__name__)
 
 # Channel Access Token
@@ -118,13 +118,6 @@ def weather(address):
         print(e)
         output = '抓取失敗...'
     return output
-
-# Function to randomly choose fortune based on weather
-def choose_fortune(weather):
-    result = "Fortune information not available."
-    # Fortune fetching logic
-    # Replace with your implementation
-    return result
 
 @app.route("/callback", methods=['POST'])
 def callback():
