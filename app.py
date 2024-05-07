@@ -86,7 +86,7 @@ def earth_quake():
         result = ['Failed to fetch data...', '']
     return result
 
-def check(address):
+def weather(address):
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
     url = [f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization={code}',
            f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization={code}']
@@ -145,7 +145,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你的位置資訊，例如：高雄市前鎮區一心二路'))
     else:
         address = message
-        reply = check(address)
+        reply = weather(address)
         text_message = TextSendMessage(text=reply)
         line_bot_api.reply_message(event.reply_token, text_message)
 
