@@ -128,12 +128,19 @@ def callback():
     return 'OK'
 
 
-line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
-def handle_text(event):
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
     message = event.message.text
-    if message == '今日運勢':
+    if message == '地震':
+        reply = earth_quake()
+        text_message = TextSendMessage(text=reply[0])
+        line_bot_api.reply_message(event.reply_token, text_message)
+        line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
+    elif message == '天氣':
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你的位置資訊，例如：高雄市前鎮區一心二路'))
+    elif message == '今日運勢':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
-        return TextSendMessage(
+        quick_reply_message = TextSendMessage(
             text='選擇一個動作',
             quick_reply=QuickReply(
                 items=[
@@ -160,25 +167,17 @@ def handle_text(event):
                 ]
             )
         )
+        line_bot_api.push_message(event.source.user_id, quick_reply_message)
     elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
         weather_info = message
         fortune = choose_fortune(weather_info)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    message = event.message.text
-    if message == '地震':
-        reply = earth_quake()
-        text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(event.reply_token, text_message)
-        line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
-    elif message == '天氣':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你的位置資訊，例如：高雄市前鎮區一心二路'))
     else:
         address = message
         reply = weather(address)
         text_message = TextSendMessage(text=reply)
         line_bot_api.reply_message(event.reply_token, text_message)
+
 
 
 if __name__ == "__main__":
