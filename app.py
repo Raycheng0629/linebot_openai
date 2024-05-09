@@ -132,6 +132,33 @@ def handle_message(event):
     message = event.message.text
     if message == '今日運勢':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
+        return TextSendMessage(
+            text='選擇一個動作',
+            quick_reply=QuickReply(
+                items=[
+                    QuickReplyButton(
+                        action=CameraAction(label='晴天'),
+                        text='晴天'
+                    ),
+                    QuickReplyButton(
+                        action=CameraRollAction(label='晴時多雲'),
+                        text='晴時多雲'
+                    ),
+                    QuickReplyButton(
+                        action=LocationAction(label='雨天'),
+                        text='雨天'
+                    ),
+                    QuickReplyButton(
+                        action=PostbackAction(label='晴天'),
+                        text='晴天'
+                    ),
+                    QuickReplyButton(
+                        action=MessageAction(label='多雲'),
+                        text='多雲'
+                    )
+                ]
+            )
+        )
     elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
         weather_info = message
         fortune = choose_fortune(weather_info)
