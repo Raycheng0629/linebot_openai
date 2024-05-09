@@ -127,6 +127,8 @@ def callback():
         abort(400)
     return 'OK'
 
+
+line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 def handle_text_message(event):
     message = event.message.text
     if message == '今日運勢':
