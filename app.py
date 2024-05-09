@@ -146,23 +146,22 @@ def handle_message(event):
                 items=[
                     QuickReplyButton(
                         action=CameraAction(label='晴天'),
-                        text='晴天'
-                    ),
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'               ),
                     QuickReplyButton(
                         action=CameraRollAction(label='晴時多雲'),
-                        text='晴時多雲'
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'    
                     ),
                     QuickReplyButton(
                         action=LocationAction(label='雨天'),
-                        text='雨天'
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/rainy-outline.svg'    
                     ),
                     QuickReplyButton(
-                        action=PostbackAction(label='晴天'),
-                        text='晴天'
+                        action=PostbackAction(label='陰天'),
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'    
                     ),
                     QuickReplyButton(
                         action=MessageAction(label='多雲'),
-                        text='多雲'
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/cloud-outline.svg'    '
                     )
                 ]
             )
