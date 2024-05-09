@@ -127,8 +127,7 @@ def callback():
         abort(400)
     return 'OK'
 
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
+def handle_text_message(event):
     message = event.message.text
     if message == '今日運勢':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
@@ -163,7 +162,10 @@ def handle_message(event):
         weather_info = message
         fortune = choose_fortune(weather_info)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
-    elif message == '地震':
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    message = event.message.text
+    if message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
         line_bot_api.reply_message(event.reply_token, text_message)
