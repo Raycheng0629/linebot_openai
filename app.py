@@ -130,6 +130,7 @@ def callback():
 
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 def handle_text_message(event):
+    handle_text_message(event)
     message = event.message.text
     if message == '今日運勢':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
