@@ -126,6 +126,7 @@ def callback():
     except InvalidSignatureError:
         abort(400)
     return 'OK'
+    
 
 
 @handler.add(MessageEvent, message=TextMessage)
@@ -178,7 +179,31 @@ def handle_message(event):
         text_message = TextSendMessage(text=reply)
         line_bot_api.reply_message(event.reply_token, text_message)
 
+def linebot(request):
+    body = request.get_data(as_text=True)
+    json_data = json.loads(body)
 
+    try:
+        signature = request.headers['X-Line-Signature']
+        handler.handle(body, signature)
+
+        event = json_data['events'][0]
+        tk = event['replyToken']
+        msg_type = event['message']['type']
+
+        if msg_type == 'text':
+            msg = event['message']['text']
+            reply_msg = handle_text_message(msg)
+            line_bot_api.reply_message(tk, reply_msg)
+        else:
+            reply_msg = TextSendMessage(text='你傳的不是文字訊息呦')
+            line_bot_api.reply_message(tk, reply_msg)
+
+    except Exception as e:
+        detail = e.args[0]
+        print(detail)
+
+    return 'OK'
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
