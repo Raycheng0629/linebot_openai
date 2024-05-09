@@ -140,7 +140,6 @@ def handle_message(event):
     elif message == '天氣':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你的位置資訊，例如：高雄市前鎮區一心二路'))
     elif message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
         quick_reply_message = TextSendMessage(
             text='選擇一個動作',
             quick_reply=QuickReply(
@@ -179,31 +178,6 @@ def handle_message(event):
         text_message = TextSendMessage(text=reply)
         line_bot_api.reply_message(event.reply_token, text_message)
 
-def linebot(request):
-    body = request.get_data(as_text=True)
-    json_data = json.loads(body)
-
-    try:
-        signature = request.headers['X-Line-Signature']
-        handler.handle(body, signature)
-
-        event = json_data['events'][0]
-        tk = event['replyToken']
-        msg_type = event['message']['type']
-
-        if msg_type == 'text':
-            msg = event['message']['text']
-            reply_msg = handle_text_message(msg)
-            line_bot_api.reply_message(tk, reply_msg)
-        else:
-            reply_msg = TextSendMessage(text='你傳的不是文字訊息呦')
-            line_bot_api.reply_message(tk, reply_msg)
-
-    except Exception as e:
-        detail = e.args[0]
-        print(detail)
-
-    return 'OK'
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
