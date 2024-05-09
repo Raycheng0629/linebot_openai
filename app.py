@@ -11,10 +11,12 @@ import os
 import random
 app = Flask(__name__)
 
+
 # Channel Access Token
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
+
 
 # 隨機選擇運勢結果
 def choose_fortune(weather):
@@ -59,7 +61,12 @@ def choose_fortune(weather):
 
 
 
+
+
+
+
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
+
 
 # Function to fetch earthquake information
 def earth_quake():
@@ -72,11 +79,13 @@ def earth_quake():
         eq1 = data1['records']['Earthquake'][0]
         t1 = data1['records']['Earthquake'][0]['EarthquakeInfo']['OriginTime']
 
+
         url2 = f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/E-A0015-001?Authorization={code}'
         req2 = requests.get(url2)
         data2 = req2.json()
         eq2 = data2['records']['Earthquake'][0]
         t2 = data2['records']['Earthquake'][0]['EarthquakeInfo']['OriginTime']
+
 
         result = [eq1['ReportContent'], eq1['ReportImageURI']]
         if t2 > t1:
@@ -85,6 +94,7 @@ def earth_quake():
         print(e)
         result = ['Failed to fetch data...', '']
     return result
+
 
 def weather(address):
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -116,6 +126,8 @@ def weather(address):
     return output
 
 
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -126,51 +138,24 @@ def callback():
     except InvalidSignatureError:
         abort(400)
     return 'OK'
-    
 
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = event.message.text
-    if message == '地震':
+    if message == '今日運勢':
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
+    elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
+        weather_info = message
+        fortune = choose_fortune(weather_info)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
+    elif message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
         line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
     elif message == '天氣':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你的位置資訊，例如：高雄市前鎮區一心二路'))
-    elif message == '今日運勢':
-        quick_reply_message = TextSendMessage(
-            text='選擇一個動作',
-            quick_reply=QuickReply(
-                items=[
-                    QuickReplyButton(
-                        action=CameraAction(label='晴天'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'               ),
-                    QuickReplyButton(
-                        action=CameraRollAction(label='晴時多雲'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'    
-                    ),
-                    QuickReplyButton(
-                        action=LocationAction(label='雨天'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/rainy-outline.svg'    
-                    ),
-                    QuickReplyButton(
-                        action=PostbackAction(label='陰天'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'    
-                    ),
-                    QuickReplyButton(
-                        action=MessageAction(label='多雲'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/cloud-outline.svg'    '
-                    )
-                ]
-            )
-        )
-        line_bot_api.push_message(event.source.user_id, quick_reply_message)
-    elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
-        weather_info = message
-        fortune = choose_fortune(weather_info)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
     else:
         address = message
         reply = weather(address)
@@ -178,6 +163,11 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, text_message)
 
 
+
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+
