@@ -1,6 +1,6 @@
 from flask import Flask, request
 import json, time, requests
-
+import os
 # 載入 LINE Message API 相關函式庫
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
