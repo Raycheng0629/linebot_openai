@@ -105,7 +105,7 @@ def linebot():
             text_message = TextSendMessage(text=reply)
             line_bot_api.reply_message(reply_token,text_message)
     except Exception as e:
-    print("Error occurred:", e)
+      print("Error occurred:", e)
 
     return 'OK'                 # 驗證 Webhook 使用，不能省略
 
