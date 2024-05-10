@@ -128,6 +128,7 @@ def weather(address):
 
 
 
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -152,7 +153,8 @@ def handle_message(event):
                 items=[
                     QuickReplyButton(
                         action=CameraAction(label='晴天'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'               ),
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'
+                    ),
                     QuickReplyButton(
                         action=CameraRollAction(label='晴時多雲'),
                         image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/sunny-outline.svg'
@@ -190,11 +192,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, text_message)
 
 
-
-
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
-
 
