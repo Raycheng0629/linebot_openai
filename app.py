@@ -167,7 +167,7 @@ def handle_message(event):
                     ),
                     QuickReplyButton(
                         action=MessageAction(label='多雲'),
-                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/cloud-outline.svg'    '
+                        image_url='https://unpkg.com/ionicons@7.1.0/dist/svg/cloud-outline.svg'
                     )
                 ]
             )
