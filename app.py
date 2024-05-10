@@ -145,10 +145,9 @@ def callback():
 def handle_message(event):
     message = event.message.text
     if message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
-        message = event.message.text
-        return TextSendMessage(
-            text='選擇一個動作',
+    line_bot_api.reply_message(event.reply_token, 
+        TextSendMessage(
+            text='請輸入你那邊的天氣狀況',
             quick_reply=QuickReply(
                 items=[
                     QuickReplyButton(
@@ -174,6 +173,8 @@ def handle_message(event):
                 ]
             )
         )
+    )
+
     elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
         weather_info = message
         fortune = choose_fortune(weather_info)
