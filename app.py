@@ -60,8 +60,6 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text="請告訴我您所在的位置，例如：臺北市、新北市、高雄市等。")
         ) 
-    elif type == 'location':
-          line_bot_api.push_message(user_id, TextSendMessage(text='馬上找給你！抓取資料中....'))
     else:
         location = event.message.text
         weather_forecast = forecast(location)
