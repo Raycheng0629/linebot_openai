@@ -53,6 +53,26 @@ def callback():
         abort(400)
     return 'OK'
 
+# 處理位置訊息事件
+@handler.add(MessageEvent, message=LocationMessage)
+def handle_location(event):
+    latitude = event.message.latitude
+    longitude = event.message.longitude
+    if latitude is None or longitude is None:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="無法取得位置資訊")
+        )
+        return
+    # 使用 Google Maps API 將經緯度轉換為地址資訊
+    geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
+    address = geocode_result[0]['formatted_address']
+    # 將地址資訊回傳給使用者
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=address)
+    )
+ 
 # 處理文字訊息事件
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -73,26 +93,6 @@ def handle_message(event):
             TextSendMessage(text=forecast_str)
         )
 
-
-# 處理位置訊息事件
-@handler.add(MessageEvent, message=LocationMessage)
-def handle_location(event):
-    latitude = event.message.latitude
-    longitude = event.message.longitude
-    if latitude is None or longitude is None:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="無法取得位置資訊")
-        )
-        return
-    # 使用 Google Maps API 將經緯度轉換為地址資訊
-    geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
-    address = geocode_result[0]['formatted_address']
-    # 將地址資訊回傳給使用者
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=address)
-    )
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
