@@ -10,7 +10,7 @@ app = Flask(__name__)
 
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
-
+ 
 google_maps_api_key = 'GOOGLE_MAPS_API_KEY'
 gmaps = googlemaps.Client(key=google_maps_api_key)
 
