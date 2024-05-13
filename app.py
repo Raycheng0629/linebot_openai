@@ -5,6 +5,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, LocationM
 import requests
 import os
 import googlemaps
+import time
 
 app = Flask(__name__)
 
@@ -27,8 +28,8 @@ def forecast(address):
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
     t = time.time()
-    t1 = time.localtime(t)
-    t2 = time.localtime(t+10800)
+    t1 = time.localtime(t+28800)
+    t2 = time.localtime(t+28800+10800)
     now = time.strftime('%Y-%m-%dT%H:%M:%S',t1)
     now2 = time.strftime('%Y-%m-%dT%H:%M:%S',t2)
     url = f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/{city_id}?Authorization={code}&elementName=WeatherDescription&timeFrom={now}&timeTo={now2}'
@@ -61,28 +62,24 @@ def handle_location(event):
     # 使用 Google Maps API 將經緯度轉換為地址資訊
     geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
     address = geocode_result[0]['formatted_address']
-    # 將地址資訊回傳給使用者
+    # 呼叫 forecast 函式取得天氣預報資料
+    weather_forecast = forecast(address)
+    # 將天氣預報資料整理成字串
+    forecast_str = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+    # 將天氣預報資料以文字訊息回傳給使用者
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=address)
+        TextSendMessage(text=forecast_str)
     )
  
 # 處理文字訊息事件
+@handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     if "天氣預報" in event.message.text:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="請傳送我您的位置。")
+            TextSendMessage(text="請傳送你所在的位置。")
         ) 
-    else:
-        location = event.message.text
-        weather_forecast = forecast(location)
-        reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=reply_message)
-        )
-
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
