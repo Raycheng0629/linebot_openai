@@ -53,6 +53,7 @@ def callback():
         abort(400)
     return 'OK'
 
+# 處理文字訊息事件
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     if "天氣預報" in event.message.text:
@@ -69,6 +70,7 @@ def handle_message(event):
             TextSendMessage(text=reply_message)
         )
 
+# 處理位置訊息事件
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location(event):
     latitude = event.message.latitude
@@ -76,16 +78,16 @@ def handle_location(event):
     if latitude is None or longitude is None:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="沒有位置資訊")
+            TextSendMessage(text="無法取得位置資訊")
         )
         return
+    # 使用 Google Maps API 將經緯度轉換為地址資訊
     geocode_result = gmaps.reverse_geocode((latitude, longitude))
     address = geocode_result[0]['formatted_address']
-    weather_forecast = forecast(address)
-    reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+    # 將地址資訊回傳給使用者
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=reply_message)
+        TextSendMessage(text=address)
     )
 
 if __name__ == "__main__":
