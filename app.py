@@ -84,10 +84,13 @@ def handle_location(event):
     # 使用 Google Maps API 將經緯度轉換為地址資訊
     geocode_result = gmaps.reverse_geocode((latitude, longitude))
     address = geocode_result[0]['formatted_address']
-    # 將地址資訊回傳給使用者
+    # 將地址資訊作為參數傳遞給 forecast 函式進行天氣預報
+    weather_forecast = forecast(address)
+    reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+    # 回傳天氣預報訊息給使用者
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=address)
+        TextSendMessage(text=reply_message)
     )
 
 if __name__ == "__main__":
