@@ -63,11 +63,14 @@ def handle_message(event):
         ) 
     else:
         location = event.message.text
+        # 呼叫天氣預報函式取得預報資料
         weather_forecast = forecast(location)
-        reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+        # 將天氣預報資料整理成字串
+        forecast_str = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+        # 將天氣預報資料以文字訊息回傳給使用者
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=reply_message)
+            TextSendMessage(text=forecast_str)
         )
 
 
