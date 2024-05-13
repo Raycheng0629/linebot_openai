@@ -59,7 +59,7 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text="請告訴我您所在的位置，例如：臺北市、新北市、高雄市等。")
-        )
+        ) 
     else:
         location = event.message.text
         weather_forecast = forecast(location)
