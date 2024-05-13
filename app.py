@@ -5,7 +5,6 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, LocationM
 import requests
 import os
 import googlemaps
-import time
 
 app = Flask(__name__)
 
@@ -23,7 +22,7 @@ def forecast(address):
             "高雄市":"F-D0047-065","新北市":"F-D0047-069","臺中市":"F-D0047-073","臺南市":"F-D0047-077",
             "連江縣":"F-D0047-081","金門縣":"F-D0047-085"}
     for name in api_list:
-        if name in address: 
+        if name in address:
             city_id = api_list[name]
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -54,32 +53,40 @@ def callback():
         abort(400)
     return 'OK'
 
-# 處理位置訊息事件
-@handler.add(MessageEvent, message=LocationMessage)
-def handle_location(event):
-    latitude = event.message.latitude
-    longitude = event.message.longitude
-    # 使用 Google Maps API 將經緯度轉換為地址資訊
-    geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
-    address = geocode_result[0]['formatted_address']
-    # 呼叫 forecast 函式取得天氣預報資料
-    weather_forecast = forecast(address)
-    # 將天氣預報資料整理成字串
-    forecast_str = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
-    # 將天氣預報資料以文字訊息回傳給使用者
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=forecast_str)
-    )
- 
-# 處理文字訊息事件
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     if "天氣預報" in event.message.text:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="請傳送你所在的位置。")
+            TextSendMessage(text="請告訴我您所在的位置，例如：臺北市、新北市、高雄市等。")
         ) 
+    else:
+        location = event.message.text
+        weather_forecast = forecast(location)
+        reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=reply_message)
+        )
+
+@handler.add(MessageEvent, message=LocationMessage)
+def handle_location(event):
+    latitude = event.message.latitude
+    longitude = event.message.longitude
+    if latitude is None or longitude is None:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="沒有位置資訊")
+        )
+        return
+    geocode_result = gmaps.reverse_geocode((latitude, longitude))
+    address = geocode_result[0]['formatted_address']
+    weather_forecast = forecast(address)
+    reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_message)
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
