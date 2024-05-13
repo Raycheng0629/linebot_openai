@@ -70,6 +70,7 @@ def handle_message(event):
             TextSendMessage(text=reply_message)
         )
 
+
 # 處理位置訊息事件
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location(event):
@@ -83,15 +84,18 @@ def handle_location(event):
         return
     # 使用 Google Maps API 將經緯度轉換為地址資訊
     geocode_result = gmaps.reverse_geocode((latitude, longitude))
-    address = geocode_result[0]['formatted_address']
-    # 將地址資訊作為參數傳遞給 forecast 函式進行天氣預報
-    weather_forecast = forecast(address)
-    reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
-    # 回傳天氣預報訊息給使用者
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=reply_message)
-    )
+    # 使用 Google Maps API 將經緯度轉換為地址資訊
+geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
+address = geocode_result[0]['formatted_address']
+
+# 將地址資訊回傳給使用者
+line_bot_api.reply_message(
+    event.reply_token,
+    TextSendMessage(text=address)
+)
+
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
