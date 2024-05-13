@@ -14,9 +14,11 @@ import os
 
 app = Flask(__name__)
 
-line_bot_api = LineBotApi('YOUR_CHANNEL_ACCESS_TOKEN')
-handler = WebhookHandler('YOUR_CHANNEL_SECRET')
 
+# Channel Access Token
+line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
+# Channel Secret
+handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 def forecast(address):
     # 將主要縣市個別的 JSON 代碼列出
     api_list = {"宜蘭縣":"F-D0047-001","桃園市":"F-D0047-005","新竹縣":"F-D0047-009","苗栗縣":"F-D0047-013",
@@ -46,6 +48,15 @@ def forecast(address):
         result[f'{city}{area}'] = '未來三小時' + note
     return result
 
+def reverse_geocode(latitude, longitude):
+    url = f'https://nominatim.openstreetmap.org/reverse?lat={latitude}&lon={longitude}&format=json'
+    response = requests.get(url)
+    data = response.json()
+    if 'display_name' in data:
+        return data['display_name']
+    else:
+        return 'Unknown'
+
 @app.route("/callback", methods=['POST'])
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -61,10 +72,11 @@ def callback():
 def handle_location(event):
     latitude = event.message.latitude
     longitude = event.message.longitude
-    address = reverse_geocode(latitude, longitude)  # Assuming you have a function to reverse geocode
+    address = reverse_geocode(latitude, longitude)
     result = forecast(address)
     reply_message = "\n".join([f"{area}: {note}" for area, note in result.items()])
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
