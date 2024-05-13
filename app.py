@@ -23,7 +23,7 @@ def forecast(address):
             "高雄市":"F-D0047-065","新北市":"F-D0047-069","臺中市":"F-D0047-073","臺南市":"F-D0047-077",
             "連江縣":"F-D0047-081","金門縣":"F-D0047-085"}
     for name in api_list:
-        if name in address:
+        if name in address: 
             city_id = api_list[name]
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
