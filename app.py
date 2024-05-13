@@ -73,6 +73,12 @@ def handle_message(event):
 def handle_location(event):
     latitude = event.message.latitude
     longitude = event.message.longitude
+    if latitude is None or longitude is None:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="沒有位置資訊")
+        )
+        return
     geocode_result = gmaps.reverse_geocode((latitude, longitude))
     address = geocode_result[0]['formatted_address']
     weather_forecast = forecast(address)
