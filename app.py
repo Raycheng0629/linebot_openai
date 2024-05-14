@@ -8,6 +8,14 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSe
 
 app = Flask(__name__)
 
+# Initialize Google Maps API client
+gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
+
+# Channel Access Token
+line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
+# Channel Secret
+handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
+
 
 # 隨機選擇運勢結果
 def choose_fortune(weather):
@@ -52,14 +60,6 @@ def choose_fortune(weather):
 
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
     
-# Initialize Google Maps API client
-gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
-
-# Channel Access Token
-line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
-# Channel Secret
-handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
-
 def earth_quake():
     result = []
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -182,13 +182,7 @@ def callback():
         user_id = json_data['events'][0]['source']['userId']
         print(json_data)
         type = json_data['events'][0]['message']['type']
-        if type == 'text':
-            text = json_data['events'][0]['message']['text']
-            if text == '雷達回波圖' or text == '雷達回波':
-                img_url = f'https://cwaopendata.s3.ap-northeast-1.amazonaws.com/Observation/O-A0058-001.png?{time.time_ns()}'
-                img_message = ImageSendMessage(original_content_url=img_url, preview_image_url=img_url)
-                line_bot_api.reply_message(reply_token, img_message)
-        elif type == 'location':
+        if type == 'location':
             address = json_data['events'][0]['message']['address'].replace('台', '臺')
             reply = weather(address)
             text_message = TextSendMessage(text=reply)
