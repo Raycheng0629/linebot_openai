@@ -70,7 +70,7 @@ def handle_location(event):
     longitude = event.message.longitude
     # 使用 Google Maps API 將經緯度轉換為地址資訊
     geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
-    address = geocode_result[0]['formatted_address']
+    address = geocode_result[0]['formatted_address'].replace('台', '臺')
     # 呼叫 forecast 函式取得天氣預報資料
     weather_forecast = forecast(address)
     # 將天氣預報資料整理成字串
