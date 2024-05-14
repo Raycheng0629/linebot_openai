@@ -125,8 +125,8 @@ def weather(address):
         return '找不到氣象資訊'
 
     t = time.time()
-    t1 = time.localtime(t)
-    t2 = time.localtime(t+10800)
+    t1 = time.localtime(t+28800)
+    t2 = time.localtime(t+2880+10800)
     now = time.strftime('%Y-%m-%dT%H:%M:%S', t1)
     now2 = time.strftime('%Y-%m-%dT%H:%M:%S', t2)
     url = f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/{city_id}?Authorization={code}&elementName=WeatherDescription&timeFrom={now}&timeTo={now2}'
