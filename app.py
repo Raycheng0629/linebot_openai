@@ -1,54 +1,19 @@
+#天氣預報--可執行
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, LocationMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import requests
+import time
 import os
-import googlemaps
 
 app = Flask(__name__)
 
+
+# Channel Access Token
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
+# Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
- 
-google_maps_api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-gmaps = googlemaps.Client(key=google_maps_api_key)
-
-
-# 處理位置訊息事件
-@handler.add(MessageEvent, message=LocationMessage)
-def handle_location(event):
-    latitude = event.message.latitude
-    longitude = event.message.longitude
-    # 使用 Google Maps API 將經緯度轉換為地址資訊
-    geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
-    address = geocode_result[0]['formatted_address']
-    # 將地址資訊回傳給使用者
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=address)
-    )
- 
-# 處理文字訊息事件
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    if "天氣預報" in event.message.text:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="請傳送你所在的位置。")
-        ) 
-    else:
-        location = event.message.text
-        # 呼叫天氣預報函式取得預報資料
-        weather_forecast = forecast(location)
-        # 將天氣預報資料整理成字串
-        forecast_str = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
-        # 將天氣預報資料以文字訊息回傳給使用者
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=forecast_str)
-        )
-
 
 def forecast(address):
     api_list = {"宜蘭縣":"F-D0047-001","桃園市":"F-D0047-005","新竹縣":"F-D0047-009","苗栗縣":"F-D0047-013",
@@ -63,8 +28,8 @@ def forecast(address):
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
     t = time.time()
-    t1 = time.localtime(t)
-    t2 = time.localtime(t+10800)
+    t1 = time.localtime(t+28800)
+    t2 = time.localtime(t+28800+10800)
     now = time.strftime('%Y-%m-%dT%H:%M:%S',t1)
     now2 = time.strftime('%Y-%m-%dT%H:%M:%S',t2)
     url = f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/{city_id}?Authorization={code}&elementName=WeatherDescription&timeFrom={now}&timeTo={now2}'
@@ -88,6 +53,24 @@ def callback():
     except InvalidSignatureError:
         abort(400)
     return 'OK'
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    if "天氣預報" in event.message.text:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text="請告訴我您所在的位置，例如：臺北市、新北市、高雄市等。")
+        )
+    else:
+        location = event.message.text
+        weather_forecast = forecast(location)
+        reply_message = "\n".join([f"{area}: {note}" for area, note in weather_forecast.items()])
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=reply_message)
+        )
+
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
