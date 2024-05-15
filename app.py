@@ -2,6 +2,7 @@
 from flask import Flask, request, abort
 import math, json, time, requests
 import os
+import random
 import googlemaps
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
