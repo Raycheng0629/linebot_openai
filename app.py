@@ -226,12 +226,6 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
 
-if __name__ == "__main__":
-    elif message == '地震':
-        reply = earth_quake()
-        text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(event.reply_token, text_message)
-        line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
