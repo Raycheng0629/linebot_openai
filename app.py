@@ -1,6 +1,22 @@
+from flask import Flask, request, abort
+import math, json, time, requests
+import os
+import googlemaps
+from linebot import LineBotApi, WebhookHandler
+from linebot.exceptions import InvalidSignatureError
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSendMessage, ImageSendMessage, LocationMessage
+import random
+
+app = Flask(__name__)
+
+# Initialize Google Maps API client
+gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
+
+# Channel Access Token
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
+
 
 def choose_fortune(weather):
     fortunes = {
