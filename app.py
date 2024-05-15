@@ -172,16 +172,16 @@ def weather(address):
         print(f"發生錯誤: {e}")
         return None
 
-uv_data = fetch_uv_data()
-if uv_data:
-    uv_records = uv_data.get('records', [])
-    for record in uv_records:
-        sitename = record.get('sitename')
-        uvi = record.get('uvi')
-        data_creation_date = record.get('datacreationdate')
-        print(f"站點名稱: {sitename}, 紫外線指數: {uvi}, 資料時間: {data_creation_date}")
-else:
-    print("無法取得紫外線資料。")
+        uv_data = fetch_uv_data()
+        if uv_data:
+            uv_records = uv_data.get('records', [])
+            for record in uv_records:
+                sitename = record.get('sitename')
+                uvi = record.get('uvi')
+                data_creation_date = record.get('datacreationdate')
+                print(f"站點名稱: {sitename}, 紫外線指數: {uvi}, 資料時間: {data_creation_date}")
+        else:
+           print("無法取得紫外線資料。")
 
 
     except Exception as e:
