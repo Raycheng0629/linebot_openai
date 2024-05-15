@@ -1,19 +1,3 @@
-#5/15版本
-from flask import Flask, request, abort
-import math, json, time, requests
-import os
-import googlemaps
-from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSendMessage, ImageSendMessage, LocationMessage
-import random
-
-app = Flask(__name__)
-
-# Initialize Google Maps API client
-gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
-
-# Channel Access Token
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
@@ -220,11 +204,29 @@ def handle_message(event):
             TextSendMessage(text="請傳送你所在的位置")
         )
     elif message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text='請輸入你那邊的天氣狀況（晴天、陰天、晴時多雲、雨天、多雲等）'))
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(
+            text='請選擇你那邊的天氣狀況',
+            quick_reply=QuickReply(
+                items=[
+                    QuickReplyButton(action=MessageAction(label='晴天', text='晴天')),
+                    QuickReplyButton(action=MessageAction(label='晴時多雲', text='晴時多雲')),
+                    QuickReplyButton(action=MessageAction(label='雨天', text='雨天')),
+                    QuickReplyButton(action=MessageAction(label='陰天', text='陰天')),
+                    QuickReplyButton(action=MessageAction(label='多雲', text='多雲'))
+                ]
+            )
+        ))
     elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
         weather_info = message
         fortune = choose_fortune(weather_info)
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
+    elif message == '地震':
+        reply = earth_quake()
+        text_message = TextSendMessage(text=reply[0])
+        line_bot_api.reply_message(event.reply_token, text_message)
+        line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
+
+if __name__ == "__main__":
     elif message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
