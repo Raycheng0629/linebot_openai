@@ -79,27 +79,28 @@ def earth_quake():
         print(e)
         result = ['地震資訊取得失敗', '']
     return result
-    
+
 def weather(address):
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
+    
     # 即時天氣
     try:
-        url = [
+        urls = [
             f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0001-001?Authorization={code}',
             f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/O-A0003-001?Authorization={code}'
         ]
-        for item in url:
+        for item in urls:
             req = requests.get(item)
             data = req.json()
-            station = data['records']['Station']
+            station = data['records']['location']
             for i in station:
-                city = i['GeoInfo']['CountyName']
-                area = i['GeoInfo']['TownName']
-                if not f'{city}{area}' in result:
-                    weather = i['WeatherElement']['Weather']
-                    temp = i['WeatherElement']['AirTemperature']
-                    humid = i['WeatherElement']['RelativeHumidity']
+                city = i['parameter'][0]['parameterValue']
+                area = i['parameter'][2]['parameterValue']
+                if f'{city}{area}' not in result:
+                    weather = i['weatherElement'][0]['elementValue']
+                    temp = i['weatherElement'][3]['elementValue']
+                    humid = i['weatherElement'][4]['elementValue']
                     result[f'{city}{area}'] = f'目前天氣狀況「{weather}」，溫度 {temp} 度，相對濕度 {humid}%！'
     except Exception as e:
         print(e)
@@ -113,9 +114,9 @@ def weather(address):
         "連江縣": "F-D0047-081", "金門縣": "F-D0047-085"
     }
     city_id = None
-    for name in api_list:
+    for name, id_ in api_list.items():
         if name in address:
-            city_id = api_list[name]
+            city_id = id_
             break
     if not city_id:
         return '找不到氣象資訊'
@@ -126,21 +127,25 @@ def weather(address):
     now = time.strftime('%Y-%m-%dT%H:%M:%S', t1)
     now2 = time.strftime('%Y-%m-%dT%H:%M:%S', t2)
     url = f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/{city_id}?Authorization={code}&elementName=WeatherDescription&timeFrom={now}&timeTo={now2}'
-    req = requests.get(url)
-    data = req.json()
-    location = data['records']['locations'][0]['location']
-    city = data['records']['locations'][0]['locationsName']
-    for item in location:
-        try:
-            area = item['locationName']
-            note = item['weatherElement'][0]['time'][0]['elementValue'][0]['value']
-            if not f'{city}{area}' in result:
-                result[f'{city}{area}'] = ''
-            else:
-                result[f'{city}{area}'] += '。\n\n'
-            result[f'{city}{area}'] += '未來三小時' + note
-        except Exception as e:
-            print(e)
+    
+    try:
+        req = requests.get(url)
+        data = req.json()
+        location = data['records']['locations'][0]['location']
+        city = data['records']['locations'][0]['locationsName']
+        for item in location:
+            try:
+                area = item['locationName']
+                note = item['weatherElement'][0]['time'][0]['elementValue'][0]['value']
+                if f'{city}{area}' not in result:
+                    result[f'{city}{area}'] = ''
+                else:
+                    result[f'{city}{area}'] += '。\n\n'
+                result[f'{city}{area}'] += '未來三小時' + note
+            except Exception as e:
+                print(e)
+    except Exception as e:
+        print(e)
 
     try:
         url = 'https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate%20desc&format=JSON'
@@ -158,39 +163,33 @@ def weather(address):
             for k in result:
                 if name in k:
                     result[k] += f'\n\nAQI：{aqi}，空氣品質{msg}。'
-
-    try:
-        url = "https://data.moenv.gov.tw/api/v2/uv_s_01?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=datacreationdate%20desc&format=JSON"
-        response = requests.get(url)
-        if response.status_code == 200:
-            data = response.json()
-            return data
-        else:
-            print(f"紫外線數值抓取失敗: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"發生錯誤: {e}")
-        return None
-
-        uv_data = fetch_uv_data()
-        if uv_data:
-            uv_records = uv_data.get('records', [])
-            for record in uv_records:
-                sitename = record.get('sitename')
-                uvi = record.get('uvi')
-                data_creation_date = record.get('datacreationdate')
-                print(f"站點名稱: {sitename}, 紫外線指數: {uvi}, 資料時間: {data_creation_date}")
-        else:
-           print("無法取得紫外線資料。")
-
-
     except Exception as e:
         print(e)
 
+    try:
+        url = "https://data.moenv.gov.tw/api/v2/uv_s_01?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=datacreationdate%20desc&format=JSON"
+        req = requests.get(url)
+        data = req.json()
+        records = data['records']
+        for item in records:
+            county = item['county']
+            sitename = item['sitename']
+            uvi = item['uvi']
+            name = f'{county}{sitename}'
+            for k in result:
+                if name in k:
+                    result[k] += f'\n\n紫外線指數：{uvi}'
+    except Exception as e:
+        print(e)
+
+    output = None
     for i in result:
         if i in address:
             output = f'「{address}」{result[i]}'
             break
+    if not output:
+        output = "找不到氣象資訊"
+
     return output
 
 @app.route("/callback", methods=['POST'])
