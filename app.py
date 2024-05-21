@@ -7,7 +7,8 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, StickerSendMessage, ImageSendMessage, LocationMessage
 import random
 from linebot.models import QuickReply, QuickReplyButton, MessageAction
-
+from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
 app = Flask(__name__)
 
@@ -18,6 +19,7 @@ gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
 line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 # Channel Secret
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
+
 
 
 def choose_fortune(weather):
@@ -59,9 +61,12 @@ def choose_fortune(weather):
         ]
     }
 
+
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
 
 
+
+# Function to fetch earthquake information
 def earth_quake():
     result = []
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -86,6 +91,7 @@ def earth_quake():
         result = ['地震資訊取得失敗', '']
     return result
 
+# Function to fetch weather information
 def weather(address):
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -173,6 +179,35 @@ def weather(address):
             break
     return output
 
+# Function to fetch real-time news
+def get_news():
+    url = "https://udn.com/news/breaknews/1"
+    response = requests.get(url)
+    response.encoding = 'utf-8'  # 設定編碼避免亂碼
+
+    news_list = []
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        container_elements = soup.find_all(class_='story-list__text')
+        for container_element in container_elements:
+            try:
+                link_elements = container_element.find_all('a')
+                for link_element in link_elements:
+                    link_text = link_element.get_text(strip=True)
+                    link_url = link_element['href']
+                    absolute_link_url = urljoin(url, link_url)  # 轉換為絕對路徑
+                    news_list.append({
+                        'title': link_text,
+                        'url': absolute_link_url
+                    })
+            except Exception as e:
+                print("連結提取失敗:", str(e))
+        return news_list
+    else:
+        print("無法取得網頁內容，狀態碼:", response.status_code)
+        return []
+
 @app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
@@ -190,6 +225,13 @@ def callback():
                 img_url = f'https://cwaopendata.s3.ap-northeast-1.amazonaws.com/Observation/O-A0058-001.png?{time.time_ns()}'
                 img_message = ImageSendMessage(original_content_url=img_url, preview_image_url=img_url)
                 line_bot_api.reply_message(reply_token, img_message)
+            elif text == '即時新聞':
+                news_data = get_news()
+                if news_data:
+                    news_messages = "\n\n".join([f"{news['title']}\n{news['url']}" for news in news_data[:5]])
+                    line_bot_api.reply_message(reply_token, TextSendMessage(text=news_messages))
+                else:
+                    line_bot_api.reply_message(reply_token, TextSendMessage(text="無法取得即時新聞"))
         elif type == 'location':
             address = json_data['events'][0]['message']['address'].replace('台', '臺')
             reply = weather(address)
@@ -241,9 +283,8 @@ def handle_message(event):
     elif message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(event.reply_token, text_message)
+        line_bot_api.reply_message(reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
-
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
