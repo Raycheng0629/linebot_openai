@@ -66,7 +66,6 @@ def choose_fortune(weather):
 
 
 
-# Function to fetch earthquake information
 def earth_quake():
     result = []
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -91,7 +90,6 @@ def earth_quake():
         result = ['地震資訊取得失敗', '']
     return result
 
-# Function to fetch weather information
 def weather(address):
     result = {}
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -179,7 +177,6 @@ def weather(address):
             break
     return output
 
-# Function to fetch real-time news
 def get_news():
     url = "https://udn.com/news/breaknews/1"
     response = requests.get(url)
@@ -189,6 +186,7 @@ def get_news():
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, 'html.parser')
+        
         container_elements = soup.find_all(class_='story-list__text')
         for container_element in container_elements:
             try:
@@ -203,6 +201,7 @@ def get_news():
                     })
             except Exception as e:
                 print("連結提取失敗:", str(e))
+        
         return news_list
     else:
         print("無法取得網頁內容，狀態碼:", response.status_code)
@@ -227,11 +226,8 @@ def callback():
                 line_bot_api.reply_message(reply_token, img_message)
             elif text == '即時新聞':
                 news_data = get_news()
-                if news_data:
-                    news_messages = "\n\n".join([f"{news['title']}\n{news['url']}" for news in news_data[:5]])
-                    line_bot_api.reply_message(reply_token, TextSendMessage(text=news_messages))
-                else:
-                    line_bot_api.reply_message(reply_token, TextSendMessage(text="無法取得即時新聞"))
+                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
+                line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
         elif type == 'location':
             address = json_data['events'][0]['message']['address'].replace('台', '臺')
             reply = weather(address)
@@ -283,8 +279,9 @@ def handle_message(event):
     elif message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(reply_token, text_message)
+        line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
+
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
