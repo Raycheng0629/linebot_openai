@@ -1,4 +1,3 @@
-#5/22版本 
 from flask import Flask, request, abort
 import os
 import time
@@ -28,7 +27,7 @@ news_categories = {
     "科技": "https://udn.com/news/breaknews/1/13#breaknews",
     "娛樂": "https://udn.com/news/breaknews/1/8#breaknews",
     "社會": "https://udn.com/news/breaknews/1/2#breaknews",
-    "氣象新聞":"https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99"
+    "氣象新聞": "https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99"
 }
 
 def get_news(url):
@@ -59,14 +58,7 @@ def get_news(url):
     else:
         print("無法取得網頁內容，狀態碼:", response.status_code)
         return []
-        
-exclude_keywords = [
-    "即時", "要聞", "娛樂", "運動", "全球", "社會", "地方",
-    "產經", "股市", "房市", "生活", "寵物", "健康", "橘世代",
-    "文教", "評論", "兩岸", "科技", "Oops", "閱讀", "旅遊",
-    "雜誌", "報時光", "倡議+", "500輯", "轉角國際", "NBA",
-    "時尚", "汽車", "棒球", "HBL", "遊戲", "專題", "網誌",
-    "女子漾", "倡議家"]
+
 def get_extreme_weather_news():
     exclude_keywords = []  # 添加這行
     response = requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
@@ -181,38 +173,17 @@ def weather(address):
             if not f'{city}{area}' in result:
                 result[f'{city}{area}'] = ''
             else:
-                result[f'{city}{area}'] += '。\n\n'
-            result[f'{city}{area}'] += '未來三小時' + note
+                result[f'{city}{area}'] += '\n\n'
+            result[f'{city}{area}'] += f'未來三小時 {note}'
         except Exception as e:
             print(e)
+            result[f'{city}{area}'] = '未來三小時天氣資訊取得失敗'
+    return '\n\n'.join([f'{k}:\n{v}' for k, v in result.items() if k in address])
 
-    try:
-        url = 'https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate%20desc&format=JSON'
-        req = requests.get(url)
-        data = req.json()
-        records = data['records']
-        aqi_status = ['良好', '普通', '對敏感族群不健康', '對所有族群不健康', '非常不健康', '危害']
-        for item in records:
-            county = item['county']
-            sitename = item['sitename']
-            name = f'{county}{sitename}'
-            aqi = int(item['aqi'])
-            msg = aqi_status[aqi // 50]
+@app.route("/", methods=['GET'])
+def hello():
+    return "Hello World!"
 
-            for k in result:
-                if name in k:
-                    result[k] += f'\n\nAQI：{aqi}，空氣品質{msg}。'
-    except Exception as e:
-        print(e)
-
-    for i in result:
-        if i in address:
-            output = f'「{address}」{result[i]}'
-            break
-    return output
-
-@app.route("/callback", methods=['POST'])
-@app.route("/callback", methods=['POST'])
 @app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
@@ -260,50 +231,5 @@ def callback():
         print(e)
     return 'OK'
 
-
-@handler.add(MessageEvent, message=LocationMessage)
-def handle_location(event):
-    latitude = event.message.latitude
-    longitude = event.message.longitude
-    geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
-    address = geocode_result[0]['formatted_address'].replace('台', '臺')
-    weather_forecast = weather(address)
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=weather_forecast)
-    )
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    message = event.message.text
-    if "天氣預報" in message:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="請傳送你所在的位置資訊")
-        )
-    elif message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(
-            text='請選擇你那邊的天氣狀況',
-            quick_reply=QuickReply(
-                items=[
-                    QuickReplyButton(action=MessageAction(label='晴天', text='晴天')),
-                    QuickReplyButton(action=MessageAction(label='晴時多雲', text='晴時多雲')),
-                    QuickReplyButton(action=MessageAction(label='雨天', text='雨天')),
-                    QuickReplyButton(action=MessageAction(label='陰天', text='陰天')),
-                    QuickReplyButton(action=MessageAction(label='多雲', text='多雲'))
-                ]
-            )
-        ))
-    elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
-        weather_info = message
-        fortune = choose_fortune(weather_info)
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
-    elif message == '地震':
-        reply = earth_quake()
-        text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(event.reply_token, text_message)
-        line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
-
 if __name__ == "__main__":
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run()
