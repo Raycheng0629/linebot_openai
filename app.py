@@ -21,7 +21,7 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
 news_categories = {
-    "精選": "https://udn.com/news/breaknews/1"
+    "精選": "https://udn.com/news/breaknews/1",
     "財經": "https://udn.com/news/breaknews/1/6#breaknews",
     "股市": "https://udn.com/news/breaknews/1/11#breaknews",
     "科技": "https://udn.com/news/breaknews/1/13#breaknews",
@@ -198,7 +198,7 @@ def callback():
             elif text == '即時新聞':
                 quick_reply = QuickReply(
                     items=[
-                        QuickReplyButton(action=MessageAction(label='精選', text='精選'))
+                        QuickReplyButton(action=MessageAction(label='精選', text='精選')),
                         QuickReplyButton(action=MessageAction(label='財經', text='財經')),
                         QuickReplyButton(action=MessageAction(label='股市', text='股市')),
                         QuickReplyButton(action=MessageAction(label='娛樂', text='娛樂')),
