@@ -1,3 +1,4 @@
+#5/22版本 
 from flask import Flask, request, abort
 import os
 import time
@@ -50,6 +51,38 @@ def get_news(url):
                         'title': link_text,
                         'url': absolute_link_url
                     })
+            except Exception as e:
+                print("連結提取失敗:", str(e))
+        
+        return news_list
+    else:
+        print("無法取得網頁內容，狀態碼:", response.status_code)
+        return []
+
+def get_extreme_weather_news():
+    response = requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
+    response.encoding = 'utf-8'  # 設定編碼避免亂碼
+
+    news_list = []
+
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        container_elements = soup.find_all(class_='story-list__text')
+        for container_element in container_elements:
+            try:
+                link_elements = container_element.find_all('a')
+                for link_element in link_elements:
+                    link_text = link_element.get_text(strip=True)
+                    link_url = link_element['href']
+                    absolute_link_url = urljoin(url, link_url)  # 轉換為絕對路徑
+
+                    # 過濾掉包含排除關鍵詞的標題
+                    if not any(keyword in link_text for keyword in exclude_keywords):
+                        news_list.append({
+                            'title': link_text,
+                            'url': absolute_link_url
+                        })
             except Exception as e:
                 print("連結提取失敗:", str(e))
         
@@ -192,9 +225,9 @@ def callback():
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
             elif text == '氣象新聞':
-                news_data = get_news("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
-                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
-                line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
+                 news_data = get_extreme_weather_news()
+                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
+                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=news_message))
             elif text == '即時新聞':
                 quick_reply = QuickReply(
                     items=[
