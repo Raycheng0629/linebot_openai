@@ -169,6 +169,7 @@ def weather(address):
     return output
 
 @app.route("/callback", methods=['POST'])
+@app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
     try:
@@ -189,7 +190,7 @@ def callback():
                 news_data = get_news(news_categories[text])
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
-                       elif text == '氣象新聞':
+            elif text == '氣象新聞':
                 news_data = get_news("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
@@ -261,3 +262,4 @@ def handle_message(event):
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
+
