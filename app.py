@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, LocationMessage, QuickReply, QuickReplyButton, MessageAction
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, LocationMessage, QuickReply, QuickReplyButton, MessageAction, ImageCarouselTemplate, ImageCarouselColumn, TemplateSendMessage, URIAction
 
 app = Flask(__name__)
 
@@ -189,7 +189,7 @@ def callback():
                 news_data = get_news(news_categories[text])
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
-            elif text == '即時新聞':
+            elif text == '即時新聞0':
                 news_data = get_news("https://udn.com/news/breaknews/1")
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
@@ -197,6 +197,15 @@ def callback():
                 news_data = get_news("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
+            elif text == '即時新聞':
+                image_carousel_template = ImageCarouselTemplate(columns=[
+                    ImageCarouselColumn(image_url='https://example.com/your_image_link.png', action=MessageAction(label='財經', text='財經')),
+                    ImageCarouselColumn(image_url='https://example.com/your_image_link.png', action=MessageAction(label='股市', text='股市')),
+                    ImageCarouselColumn(image_url='https://example.com/your_image_link.png', action=MessageAction(label='娛樂', text='娛樂')),
+                    ImageCarouselColumn(image_url='https://example.com/your_image_link.png', action=MessageAction(label='社會', text='社會')),
+                    ImageCarouselColumn(image_url='https://example.com/your_image_link.png', action=MessageAction(label='科技', text='科技'))
+                ])
+                line_bot_api.reply_message(reply_token, TemplateSendMessage(alt_text='圖片輪播樣板', template=image_carousel_template))
         elif type == 'location':
             address = json_data['events'][0]['message']['address'].replace('台', '臺')
             reply = weather(address)
@@ -248,7 +257,7 @@ def handle_message(event):
     elif message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(reply_token, text_message)
+        line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
 
 if __name__ == "__main__":
