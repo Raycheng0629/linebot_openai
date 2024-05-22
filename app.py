@@ -226,7 +226,7 @@ def callback():
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
             elif text == '氣象新聞':
                 news_data = get_extreme_weather_news()
-                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
+                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:3])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
             elif text == '即時新聞':
                 quick_reply = QuickReply(
