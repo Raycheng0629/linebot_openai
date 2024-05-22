@@ -60,6 +60,7 @@ def get_news(url):
         return []
 
 def get_extreme_weather_news():
+    exclude_keywords = []  # 添加這行
     response = requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
     response.encoding = 'utf-8'  # 設定編碼避免亂碼
 
@@ -225,9 +226,9 @@ def callback():
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
             elif text == '氣象新聞':
-                 news_data = get_extreme_weather_news()
-                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
-                 line_bot_api.reply_message(event.reply_token, TextSendMessage(text=news_message))
+                news_data = get_news(news_categories[text])
+                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
+                line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
             elif text == '即時新聞':
                 quick_reply = QuickReply(
                     items=[
