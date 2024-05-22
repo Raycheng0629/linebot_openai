@@ -213,6 +213,7 @@ def weather(address):
 
 @app.route("/callback", methods=['POST'])
 @app.route("/callback", methods=['POST'])
+@app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
     try:
@@ -230,11 +231,10 @@ def callback():
                 img_message = ImageSendMessage(original_content_url=img_url, preview_image_url=img_url)
                 line_bot_api.reply_message(reply_token, img_message)
             elif text in news_categories:
-                news_data = get_news(news_categories[text])
-                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
-                line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
-            elif text == '氣象新聞':
-                news_data = get_news(news_categories[text])
+                if text == '氣象新聞':
+                    news_data = get_extreme_weather_news()
+                else:
+                    news_data = get_news(news_categories[text])
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
             elif text == '即時新聞':
@@ -259,6 +259,7 @@ def callback():
     except Exception as e:
         print(e)
     return 'OK'
+
 
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location(event):
