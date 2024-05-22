@@ -59,7 +59,14 @@ def get_news(url):
     else:
         print("無法取得網頁內容，狀態碼:", response.status_code)
         return []
-
+        
+exclude_keywords = [
+    "即時", "要聞", "娛樂", "運動", "全球", "社會", "地方",
+    "產經", "股市", "房市", "生活", "寵物", "健康", "橘世代",
+    "文教", "評論", "兩岸", "科技", "Oops", "閱讀", "旅遊",
+    "雜誌", "報時光", "倡議+", "500輯", "轉角國際", "NBA",
+    "時尚", "汽車", "棒球", "HBL", "遊戲", "專題", "網誌",
+    "女子漾", "倡議家"]
 def get_extreme_weather_news():
     exclude_keywords = []  # 添加這行
     response = requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
