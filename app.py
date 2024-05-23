@@ -296,56 +296,6 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
 
-# Generate health advice based on weather and AQI information
-def generate_health_advice(weather_info, aqi_info):
-    health_advice = ""
-
-    # Weather health advice
-    if "雨天" in weather_info or "陰天" in weather_info:
-        health_advice += "今天天氣較差，請注意保暖，避免淋雨。\n\n"
-    elif "晴天" in weather_info or "晴時多雲" in weather_info or "多雲" in weather_info:
-        health_advice += "今天天氣不錯，適合出門活動，記得補充水分哦。\n\n"
-
-    # AQI health advice
-    if "良好" in aqi_info:
-        health_advice += "空氣質量良好，適合戶外活動。\n"
-    elif "普通" in aqi_info:
-        health_advice += "空氣質量普通，對大多數人群無影響。\n"
-    elif "對敏感族群不健康" in aqi_info:
-        health_advice += "空氣質量不佳，敏感族群應減少戶外活動。\n"
-    elif "對所有族群不健康" in aqi_info:
-        health_advice += "空氣質量差，所有人應減少戶外活動。\n"
-    elif "非常不健康" in aqi_info:
-        health_advice += "空氣質量非常差，盡量待在室內。\n"
-    elif "危害" in aqi_info:
-        health_advice += "空氣質量危害，請避免戶外活動。\n"
-
-    return health_advice
-
-# Handler for handling health advice request
-@handler.add(MessageEvent, message=TextMessage)
-def handle_health_advice(event):
-    message = event.message.text
-    if "健康建議" in message:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="請傳送你所在的位置資訊")
-        )
-
-# Handler for location message
-@handler.add(MessageEvent, message=LocationMessage)
-def handle_location_message(event):
-    latitude = event.message.latitude
-    longitude = event.message.longitude
-    geocode_result = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
-    address = geocode_result[0]['formatted_address'].replace('台', '臺')
-    weather_info = weather(address)
-    aqi_info = aqi(address)
-    health_advice = generate_health_advice(weather_info, aqi_info)
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=health_advice)
-    )
     
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
