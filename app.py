@@ -296,6 +296,65 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
 
+def generate_health_advice(weather_info, aqi_info):
+    advice = "健康提醒：\n\n"
+    advice += f"天氣狀況：{weather_info['weather']}\n"
+    advice += f"溫度：{weather_info['temperature']} 度\n"
+    advice += f"相對濕度：{weather_info['humidity']}%\n\n"
+    advice += f"AQI（空氣品質指標）：{aqi_info['aqi']}\n"
+    advice += f"空氣品質：{aqi_info['quality']}\n\n"
+
+    if weather_info['humidity'] > 70:
+        advice += "建議您保持適當的水分攝取，以防脫水。\n"
+    if aqi_info['aqi'] > 100:
+        advice += "空氣品質不佳，請避免戶外活動，或佩戴口罩出行。\n"
+
+    return advice
+
+@app.route("/callback", methods=['POST'])
+def callback():
+    body = request.get_data(as_text=True)
+    signature = request.headers['X-Line-Signature']
+
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+
+    return 'OK'
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    message = event.message.text
+    if message == '健康提醒':
+        try:
+            # Get user's location
+            latitude = event.source['latitude']
+            longitude = event.source['longitude']
+            location = gmaps.reverse_geocode((latitude, longitude), language='zh-TW')
+            address = location[0]['formatted_address']
+            # Retrieve weather and AQI information
+            weather_aqi_info = get_weather_and_aqi(address)
+
+            if weather_aqi_info:
+                # Generate health advice based on weather and AQI information
+                health_advice = generate_health_advice(weather_aqi_info['weather_info'], weather_aqi_info['aqi_info'])
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=health_advice)
+                )
+            else:
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text="無法獲取天氣和空氣品質資訊，請稍後再試。")
+                )
+        except Exception as e:
+            print("Error getting user's location:", e)
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text="無法獲取您的位置資訊，請確保已允許存取位置。")
+            )
+
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
