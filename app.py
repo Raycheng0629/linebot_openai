@@ -342,12 +342,11 @@ def handle_message(event):
                 ]
             )
         ))
-    elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
-        forecast = choose_fortune(message)
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=forecast)
-        )
+   elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
+        weather_info = message
+        fortune = choose_fortune(weather_info)
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=fortune))
+
     elif message == '地震':
         reply = earth_quake()
         text_message = TextSendMessage(text=reply[0])
