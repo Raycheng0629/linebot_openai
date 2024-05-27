@@ -25,6 +25,8 @@ line_bot_api = LineBotApi(os.getenv('CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('CHANNEL_SECRET'))
 
 
+
+
 def choose_fortune(weather):
     fortunes = {
         '晴天': [
@@ -64,7 +66,12 @@ def choose_fortune(weather):
         ]
     }
 
+
+
+
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
+
+
 
 
 news_categories = {
@@ -74,7 +81,7 @@ news_categories = {
     "科技": "https://udn.com/news/breaknews/1/13#breaknews",
     "娛樂": "https://udn.com/news/breaknews/1/8#breaknews",
     "社會": "https://udn.com/news/breaknews/1/2#breaknews",
-    "氣象資訊": "https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99"
+    "氣象新聞":"https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99"
 }
 
 
@@ -111,8 +118,7 @@ def get_news(url):
 
 
 def get_extreme_weather_news():
-    url = "https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99"
-    response = requests.get(url)
+requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
     response.encoding = 'utf-8'  # 設定編碼避免亂碼
 
 
@@ -130,10 +136,6 @@ def get_extreme_weather_news():
                     link_text = link_element.get_text(strip=True)
                     link_url = link_element['href']
                     absolute_link_url = urljoin(url, link_url)  # 轉換為絕對路徑
-                    news_list.append({
-                        'title': link_text,
-                        'url': absolute_link_url
-                    })
             except Exception as e:
                 print("連結提取失敗:", str(e))
        
@@ -141,6 +143,7 @@ def get_extreme_weather_news():
     else:
         print("無法取得網頁內容，狀態碼:", response.status_code)
         return []
+
 
 def earth_quake():
     result = []
@@ -260,6 +263,9 @@ def weather(address):
             output = f'「{address}」{result[i]}'
             break
     return output
+
+
+@app.route("/callback", methods=['POST'])
 @app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
@@ -278,6 +284,10 @@ def callback():
                 img_message = ImageSendMessage(original_content_url=img_url, preview_image_url=img_url)
                 line_bot_api.reply_message(reply_token, img_message)
             elif text in news_categories:
+                news_data = get_news(news_categories[text])
+                news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
+                line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
+            elif text == '氣象新聞':
                 news_data = get_news(news_categories[text])
                 news_message = "\n\n".join([f"{i+1}. {news['title']}\n{news['url']}" for i, news in enumerate(news_data[:5])])
                 line_bot_api.reply_message(reply_token, TextSendMessage(text=news_message))
@@ -303,6 +313,7 @@ def callback():
     except Exception as e:
         print(e)
     return 'OK'
+
 
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location(event):
