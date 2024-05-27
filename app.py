@@ -73,7 +73,8 @@ news_categories = {
     "股市": "https://udn.com/news/breaknews/1/11#breaknews",
     "科技": "https://udn.com/news/breaknews/1/13#breaknews",
     "娛樂": "https://udn.com/news/breaknews/1/8#breaknews",
-    "社會": "https://udn.com/news/breaknews/1/2#breaknews"
+    "社會": "https://udn.com/news/breaknews/1/2#breaknews",
+    "氣象資訊": "https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99"
 }
 
 
