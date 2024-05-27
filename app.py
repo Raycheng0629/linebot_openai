@@ -313,51 +313,50 @@ def handle_message(event):
         text_message = TextSendMessage(text=reply[0])
         line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
-
 def generate_health_advice(weather_info, temp, rain_prob, aqi):
     advice = []
 
     # Weather condition advice
     if '晴' in weather_info:
-        advice.append("配件：戴帽子、太陽眼鏡、使用防曬霜。\n活動：避免中午時段在戶外活動，適合晨間和晚間運動。")
+        advice.append("天氣狀況「晴」:配件：戴帽子、太陽眼鏡、使用防曬霜。\n活動：避免中午時段在戶外活動，適合晨間和晚間運動。")
     elif '陰' in weather_info:
-        advice.append("配件：攜帶輕便外套或毛衣。\n活動：適合全天候戶外活動，注意天氣變化。")
+        advice.append("天氣狀況「陰」:配件：攜帶輕便外套或毛衣。\n活動：適合全天候戶外活動，注意天氣變化。")
     elif '多雲' in weather_info:
-        advice.append("配件：攜帶小型折疊傘，備用雨具。\n活動：適合戶外活動，但要注意雲層變化，隨時準備應對降雨。")
+        advice.append("天氣狀況「多雲」:配件：攜帶小型折疊傘，備用雨具。\n活動：適合戶外活動，但要注意雲層變化，隨時準備應對降雨。")
     elif '雨' in weather_info:
-        advice.append("配件：撐傘、穿防水外套或雨衣、穿防滑鞋。\n活動：避免在低窪地區停留，注意行人和交通安全。")
+        advice.append("天氣狀況「雨」:配件：撐傘、穿防水外套或雨衣、穿防滑鞋。\n活動：避免在低窪地區停留，注意行人和交通安全。")
 
     # Temperature advice
     if temp > 30:
-        advice.append("穿著：輕薄、透氣的棉質或亞麻衣物，短袖短褲，涼鞋。\n活動：多喝水，避免烈日下長時間活動，室內保持通風或使用空調。")
+        advice.append(f"溫度{temp}度 :穿著：輕薄、透氣的棉質或亞麻衣物，短袖短褲，涼鞋。\n活動：多喝水，避免烈日下長時間活動，室內保持通風或使用空調。")
     elif 20 <= temp <= 30:
-        advice.append("穿著：舒適、透氣的衣物，如T恤、薄長褲或裙子，攜帶輕便外套以應對早晚溫差。\n活動：適合各類戶外活動，注意適時補充水分。")
+        advice.append(f"溫度{temp}度 :穿著：舒適、透氣的衣物，如T恤、薄長褲或裙子，攜帶輕便外套以應對早晚溫差。\n活動：適合各類戶外活動，注意適時補充水分。")
     elif 10 <= temp < 20:
-        advice.append("穿著：長袖衣物，薄外套或風衣。\n活動：適合戶外運動，但早晚可能需要加穿外套。")
+        advice.append(f"溫度{temp}度 :穿著：長袖衣物，薄外套或風衣。\n活動：適合戶外運動，但早晚可能需要加穿外套。")
     elif temp < 10:
-        advice.append("穿著：厚重的衣物，如羽絨服、毛衣，戴手套、圍巾、帽子。\n活動：注意保暖，避免長時間在室外，尤其是寒風中。")
+        advice.append(f"溫度{temp}度 :穿著：厚重的衣物，如羽絨服、毛衣，戴手套、圍巾、帽子。\n活動：注意保暖，避免長時間在室外，尤其是寒風中。")
 
     # Rain probability advice
     if rain_prob > 40:
-        advice.append("配件：攜帶雨傘或雨衣，穿防水鞋。\n活動：安排室內活動，外出時注意路面濕滑。")
+        advice.append(f"將與機率{rain_prob}%:配件：攜帶雨傘或雨衣，穿防水鞋。\n活動：安排室內活動，外出時注意路面濕滑。")
     elif 20 <= rain_prob <= 40:
-        advice.append("配件：攜帶小型折疊傘，以備不時之需。\n活動：可以進行戶外活動，但要注意天氣變化，避免久留戶外。")
+        advice.append(f"將與機率{rain_prob}%:配件：攜帶小型折疊傘，以備不時之需。\n活動：可以進行戶外活動，但要注意天氣變化，避免久留戶外。")
     elif rain_prob < 20:
-        advice.append("配件：不需特別準備，但可注意天氣變化。\n活動：適合各類戶外活動。")
+        advice.append(f"將與機率{rain_prob}%:配件：不需特別準備，但可注意天氣變化。\n活動：適合各類戶外活動。")
 
     # AQI advice
     if 0 <= aqi <= 50:
-        advice.append("活動：空氣質量優良，適合所有戶外活動。")
+        advice.append("api值{}:空氣質量優良，適合所有戶外活動。".format(aqi))
     elif 51 <= aqi <= 100:
-        advice.append("活動：空氣質量尚可，一般人群可以正常活動，敏感人群（如老人、小孩、呼吸道疾病患者）外出時應減少高強度戶外活動。")
+        advice.append("api值{}:空氣質量尚可，一般人群可以正常活動，敏感人群（如老人、小孩、呼吸道疾病患者）外出時應減少高強度戶外活動。".format(aqi))
     elif 101 <= aqi <= 150:
-        advice.append("活動：敏感人群應減少戶外活動，戴口罩，一般人群注意適當減少高強度戶外活動。")
+        advice.append("api值{}:敏感人群應減少戶外活動，戴口罩，一般人群注意適當減少高強度戶外活動。".format(aqi))
     elif 151 <= aqi <= 200:
-        advice.append("活動：所有人群應減少戶外活動，建議戴口罩，尤其是在戶外運動時。")
+        advice.append("api值{}:所有人群應減少戶外活動，建議戴口罩，尤其是在戶外運動時。".format(aqi))
     elif 201 <= aqi <= 300:
-        advice.append("活動：避免外出，尤其是老年人、兒童和有呼吸道疾病的人，必須外出時戴N95口罩。")
+        advice.append("api值{}:避免外出，尤其是老年人、兒童和有呼吸道疾病的人，必須外出時戴N95口罩。".format(aqi))
     elif aqi > 300:
-        advice.append("活動：避免所有戶外活動，留在室內，關閉門窗，使用空氣淨化器，準備應急物品。")
+        advice.append("api值{}:避免所有戶外活動，留在室內，關閉門窗，使用空氣淨化器，準備應急物品。".format(aqi))
 
     return "\n\n".join(advice)
 
