@@ -118,7 +118,7 @@ def get_news(url):
 
 
 def get_extreme_weather_news():
-requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
+    requests.get("https://udn.com/search/tagging/2/%E6%A5%B5%E7%AB%AF%E6%B0%A3%E5%80%99")
     response.encoding = 'utf-8'  # 設定編碼避免亂碼
 
 
