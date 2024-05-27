@@ -338,11 +338,11 @@ def generate_health_advice(weather_info, temp, rain_prob, aqi):
 
     # Rain probability advice
     if rain_prob > 40:
-        advice.append(f"將與機率{rain_prob}%:配件：攜帶雨傘或雨衣，穿防水鞋。\n活動：安排室內活動，外出時注意路面濕滑。")
+        advice.append(f"降雨機率{rain_prob}%:配件：攜帶雨傘或雨衣，穿防水鞋。\n活動：安排室內活動，外出時注意路面濕滑。")
     elif 20 <= rain_prob <= 40:
-        advice.append(f"將與機率{rain_prob}%:配件：攜帶小型折疊傘，以備不時之需。\n活動：可以進行戶外活動，但要注意天氣變化，避免久留戶外。")
+        advice.append(f"降雨機率{rain_prob}%:配件：攜帶小型折疊傘，以備不時之需。\n活動：可以進行戶外活動，但要注意天氣變化，避免久留戶外。")
     elif rain_prob < 20:
-        advice.append(f"將與機率{rain_prob}%:配件：不需特別準備，但可注意天氣變化。\n活動：適合各類戶外活動。")
+        advice.append(f"降雨機率{rain_prob}%:配件：不需特別準備，但可注意天氣變化。\n活動：適合各類戶外活動。")
 
     # AQI advice
     if 0 <= aqi <= 50:
