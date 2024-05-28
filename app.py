@@ -181,7 +181,7 @@ def weather(address):
             rain_prob = float(weather_info.split("降雨機率 ")[1].split("%")[0])
             aqi = int(weather_info.split("AQI：")[1].split("，")[0]) if "AQI：" in weather_info else 0
             health_advice = generate_health_advice(weather_info, temp, rain_prob, aqi)
-            output = f'「{address}」{weather_info}\n--------------------\n健康提醒：\n{health_advice}'
+            output = f'「{address}」{weather_info}\n-------------------------------\n健康提醒：\n{health_advice}'
             break
     return output
 
