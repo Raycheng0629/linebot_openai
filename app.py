@@ -313,7 +313,7 @@ def handle_message(event):
             )
         ))
     elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
-        forecast = get_fortune(message)
+        forecast = choose_fortune(message)
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=forecast)
