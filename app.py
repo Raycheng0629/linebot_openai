@@ -1,4 +1,4 @@
-#5/27版本 天氣預報 今日運勢 地震 即時新聞 氣象新聞 健康提醒 功能已完成
+#5/28版本 天氣預報 今日運勢 地震 即時新聞 氣象新聞 健康提醒 附近午餐選單 功能已完成
 from flask import Flask, request, abort
 import os
 import json
@@ -16,16 +16,11 @@ from linebot.models import (
 )
 
 
-
 app = Flask(__name__)
-
-
 
 
 # Initialize Google Maps API client
 gmaps = googlemaps.Client(key=os.getenv('GOOGLE_MAPS_API_KEY'))
-
-
 
 
 # Channel Access Token
@@ -73,8 +68,6 @@ def choose_fortune(weather):
     return random.choice(fortunes[weather])  # 從指定天氣的運勢結果中隨機選擇一個
 
 
-
-
 news_categories = {
     "精選": "https://udn.com/news/breaknews/1",
     "財經": "https://udn.com/news/breaknews/1/6#breaknews",
@@ -86,13 +79,9 @@ news_categories = {
 }
 
 
-
-
 def get_news(url):
     response = requests.get(url)
     response.encoding = 'utf-8'
-
-
 
 
     news_list = []
@@ -115,8 +104,6 @@ def get_news(url):
         return []
 
 
-
-
 def earth_quake():
     result = []
     code = 'CWA-B683EE16-4F0D-4C8F-A2AB-CCCA415C60E1'
@@ -128,15 +115,11 @@ def earth_quake():
         t1 = eq1['EarthquakeInfo']['OriginTime']
 
 
-
-
         url2 = f'https://opendata.cwa.gov.tw/api/v1/rest/datastore/E-A0015-001?Authorization={code}'
         req2 = requests.get(url2)
         data2 = req2.json()
         eq2 = data2['records']['Earthquake'][0]
         t2 = eq2['EarthquakeInfo']['OriginTime']
-
-
 
 
         result = [eq1['ReportContent'], eq1['ReportImageURI']]
@@ -146,8 +129,6 @@ def earth_quake():
         print(e)
         result = ['地震資訊取得失敗', '']
     return result
-
-
 
 
 def weather(address):
@@ -175,8 +156,6 @@ def weather(address):
         print(e)
 
 
-
-
     api_list = {
         "宜蘭縣": "F-D0047-001", "桃園市": "F-D0047-005", "新竹縣": "F-D0047-009", "苗栗縣": "F-D0047-013",
         "彰化縣": "F-D0047-017", "南投縣": "F-D0047-021", "雲林縣": "F-D0047-025", "嘉義縣": "F-D0047-029",
@@ -192,8 +171,6 @@ def weather(address):
             break
     if not city_id:
         return '找不到氣象資訊'
-
-
 
 
     t = time.time()
@@ -219,8 +196,6 @@ def weather(address):
             print(e)
 
 
-
-
     try:
         url = 'https://data.moenv.gov.tw/api/v2/aqx_p_432?api_key=e8dd42e6-9b8b-43f8-991e-b3dee723a52d&limit=1000&sort=ImportDate%20desc&format=JSON'
         req = requests.get(url)
@@ -235,15 +210,11 @@ def weather(address):
             msg = aqi_status[aqi // 50]
 
 
-
-
             for k in result:
                 if name in k:
                     result[k] += f'\n\nAQI：{aqi}，空氣品質{msg}。'
     except Exception as e:
         print(e)
-
-
 
 
     for i in result:
@@ -256,8 +227,6 @@ def weather(address):
             output = f'「{address}」{weather_info}\n-------------------------------\n健康提醒：\n{health_advice}'
             break
     return output
-
-
 
 
 @app.route("/callback", methods=['POST'])
@@ -314,8 +283,6 @@ def callback():
     return 'OK'
 
 
-
-
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location(event):
     latitude = event.message.latitude
@@ -327,8 +294,6 @@ def handle_location(event):
         event.reply_token,
         TextSendMessage(text=weather_forecast)
     )
-
-
 
 
 @handler.add(MessageEvent, message=TextMessage)
@@ -434,7 +399,7 @@ def callback():
     return 'OK'
 
 @handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
+def lunch_location_message(event):
     lineMessage = event.message.text
     if lineMessage[0:3] == "我想吃":
         lineMes = lineMessage
