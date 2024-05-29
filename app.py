@@ -5,8 +5,7 @@ import requests
 import googlemaps
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, TemplateSendMessage, ButtonsTemplate, URITemplateAction
-import random
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, TemplateSendMessage, ButtonsTemplate, URITemplateAction, CarouselTemplate, CarouselColumn
 
 app = Flask(__name__)
 
@@ -62,42 +61,41 @@ def handle_message(event):
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="查無餐廳"))
             return
         
-        res_num = len(top20_restaurants)
         bravo = []
         
-        for i in range(res_num):
+        for restaurant in top20_restaurants:
             try:
-                if top20_restaurants[i]['rating'] > 3.9:
-                    bravo.append(i)
+                if restaurant['rating'] > 3.9:
+                    bravo.append(restaurant)
+                    if len(bravo) >= 8:
+                        break
             except KeyError:
                 continue
         
-        if len(bravo) < 8:
-            content = "沒找到高評分的店家，隨便選一家"
-            restaurant = top20_restaurants[random.choice(range(res_num))]
-        else:
-            restaurant = top20_restaurants[random.choice(bravo)]
+        if not bravo:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="沒找到高評分的店家，隨便選一家"))
+            return
         
-        if restaurant.get("photos") is None:
-            thumbnail_image_url = None
-        else:
-            photo_reference = restaurant["photos"][0]["photo_reference"]
-            photo_width = restaurant["photos"][0]["width"]
-            thumbnail_image_url = "https://maps.googleapis.com/maps/api/place/photo?key={}&photoreference={}&maxwidth={}".format(os.getenv('GOOGLE_MAPS_API_KEY'), photo_reference, photo_width)
-        
-        rating = "無" if restaurant.get("rating") is None else restaurant["rating"]
-        address = "沒有資料" if restaurant.get("vicinity") is None else restaurant["vicinity"]
-        details = "Google Map分數: {}\n地址: {}".format(rating, address)
-        
-        map_url = "https://www.google.com/maps/search/?api=1&query={},{}&query_place_id={}".format(
-            restaurant["geometry"]["location"]["lat"],
-            restaurant["geometry"]["location"]["lng"],
-            restaurant["place_id"]
-        )
-        
-        buttons_template = TemplateSendMessage(
-            alt_text=restaurant["name"],
-            template=ButtonsTemplate(
+        columns = []
+        for restaurant in bravo:
+            if restaurant.get("photos"):
+                photo_reference = restaurant["photos"][0]["photo_reference"]
+                photo_width = restaurant["photos"][0]["width"]
+                thumbnail_image_url = "https://maps.googleapis.com/maps/api/place/photo?key={}&photoreference={}&maxwidth={}".format(os.getenv('GOOGLE_MAPS_API_KEY'), photo_reference, photo_width)
+            else:
+                thumbnail_image_url = None
+
+            rating = "無" if restaurant.get("rating") is None else restaurant["rating"]
+            address = "沒有資料" if restaurant.get("vicinity") is None else restaurant["vicinity"]
+            details = "Google Map分數: {}\n地址: {}".format(rating, address)
+            
+            map_url = "https://www.google.com/maps/search/?api=1&query={},{}&query_place_id={}".format(
+                restaurant["geometry"]["location"]["lat"],
+                restaurant["geometry"]["location"]["lng"],
+                restaurant["place_id"]
+            )
+            
+            column = CarouselColumn(
                 thumbnail_image_url=thumbnail_image_url,
                 title=restaurant["name"],
                 text=details,
@@ -108,8 +106,14 @@ def handle_message(event):
                     )
                 ]
             )
+            columns.append(column)
+        
+        carousel_template = TemplateSendMessage(
+            alt_text='高評分餐廳',
+            template=CarouselTemplate(columns=columns)
         )
-        line_bot_api.reply_message(event.reply_token, buttons_template)
+        
+        line_bot_api.reply_message(event.reply_token, carousel_template)
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
