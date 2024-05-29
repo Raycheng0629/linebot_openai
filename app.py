@@ -386,40 +386,6 @@ def generate_health_advice(weather_info, temp, rain_prob, aqi):
     return "\n\n".join(advice)
 
 
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    message = event.message.text
-    if "天氣預報" in message:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="請傳送你所在的位置資訊")
-        )
-    elif message == '今日運勢':
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(
-            text='請選擇你那邊的天氣狀況',
-            quick_reply=QuickReply(
-                items=[
-                    QuickReplyButton(action=MessageAction(label='晴天', text='晴天')),
-                    QuickReplyButton(action=MessageAction(label='晴時多雲', text='晴時多雲')),
-                    QuickReplyButton(action=MessageAction(label='雨天', text='雨天')),
-                    QuickReplyButton(action=MessageAction(label='陰天', text='陰天')),
-                    QuickReplyButton(action=MessageAction(label='多雲', text='多雲'))
-                ]
-            )
-        ))
-    elif message in ['晴天', '晴時多雲', '雨天', '陰天', '多雲']:
-        forecast = choose_fortune(message)  
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=forecast)
-        )
-    elif message == '地震':
-        reply = earth_quake()
-        text_message = TextSendMessage(text=reply[0])
-        line_bot_api.reply_message(event.reply_token, text_message)
-        line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
-
 @handler.add(MessageEvent, message=TextMessage)
 def lunch_location_message(event):
     lineMessage = event.message.text
