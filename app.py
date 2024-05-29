@@ -229,12 +229,13 @@ def weather(address):
             break
     return output
 
-
 @app.route("/callback", methods=['POST'])
 def callback():
+    signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+    
     try:
-        signature = request.headers['X-Line-Signature']
         handler.handle(body, signature)
         json_data = json.loads(body)
         reply_token = json_data['events'][0]['replyToken']
@@ -282,7 +283,6 @@ def callback():
     except Exception as e:
         print(e)
     return 'OK'
-
 
 @handler.add(MessageEvent, message=LocationMessage)
 def handle_location(event):
@@ -384,20 +384,6 @@ def generate_health_advice(weather_info, temp, rain_prob, aqi):
 
 
     return "\n\n".join(advice)
-
-@app.route("/callback", methods=['POST'])
-def line_callback():
-    signature = request.headers['X-Line-Signature']
-    body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
-
-    try:
-        handler.handle(body, signature)
-    except InvalidSignatureError:
-        abort(400)
-
-    return 'OK'
-
 
 @handler.add(MessageEvent, message=TextMessage)
 def lunch_location_message(event):
