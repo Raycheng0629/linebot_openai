@@ -5,7 +5,6 @@ import json
 import requests
 import googlemaps
 import time
-import random
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from linebot import LineBotApi, WebhookHandler
@@ -229,13 +228,13 @@ def weather(address):
             output = f'「{address}」{weather_info}\n-------------------------------\n健康提醒：\n{health_advice}'
             break
     return output
+
+
 @app.route("/callback", methods=['POST'])
 def callback():
-    signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
-    app.logger.info("Request body: " + body)
-    
     try:
+        signature = request.headers['X-Line-Signature']
         handler.handle(body, signature)
         json_data = json.loads(body)
         reply_token = json_data['events'][0]['replyToken']
@@ -297,6 +296,7 @@ def handle_location(event):
         TextSendMessage(text=weather_forecast)
     )
 
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     message = event.message.text
@@ -330,10 +330,7 @@ def handle_message(event):
         line_bot_api.reply_message(event.reply_token, text_message)
         line_bot_api.push_message(event.source.user_id, ImageSendMessage(original_content_url=reply[1], preview_image_url=reply[1]))
     elif message == '我想找附近美食':
-         line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text="輸入:我想吃 輸入欲查詢的地址,如:我想吃 台北市士林區臨溪路70號")
-        )
+        print("輸入:我想吃 輸入欲查詢的地址,如:我想吃 台北市士林區臨溪路70號")
 
        
 def generate_health_advice(weather_info, temp, rain_prob, aqi):
@@ -477,6 +474,4 @@ def lunch_location_message(event):
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
-
 
