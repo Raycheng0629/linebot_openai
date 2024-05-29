@@ -4,6 +4,7 @@ import os
 import json
 import requests
 import googlemaps
+import time
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from linebot import LineBotApi, WebhookHandler
@@ -384,9 +385,8 @@ def generate_health_advice(weather_info, temp, rain_prob, aqi):
 
     return "\n\n".join(advice)
 
-
 @app.route("/callback", methods=['POST'])
-def callback():
+def line_callback():
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
     app.logger.info("Request body: " + body)
@@ -397,6 +397,7 @@ def callback():
         abort(400)
 
     return 'OK'
+
 
 @handler.add(MessageEvent, message=TextMessage)
 def lunch_location_message(event):
