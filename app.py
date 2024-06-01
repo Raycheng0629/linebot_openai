@@ -303,7 +303,7 @@ def handle_message(event):
     if "天氣預報" in message:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="請傳送你所在的位置資訊")
+            TextSendMessage(text="按左下方「+」，選擇位置資訊，將你的位置分享給我!")
         )
     elif message == '今日運勢':
         line_bot_api.reply_message(event.reply_token, TextSendMessage(
