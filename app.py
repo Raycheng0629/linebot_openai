@@ -332,7 +332,7 @@ def handle_message(event):
     elif message == '我想找附近美食':
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="輸入:我想吃 輸入欲查詢的地址,如:我想吃 台北市士林區臨溪路70號")
+            TextSendMessage(text="請輸入「我想吃」加上你想查詢的地址，例如「我想吃 台北市士林區臨溪路70號」，以獲取附近的餐廳資訊。")
         )
     elif message.startswith("我想吃"):
         lineMes = message
