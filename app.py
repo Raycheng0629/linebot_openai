@@ -424,7 +424,7 @@ def generate_health_advice(weather_info, temp, rain_prob, aqi):
     if '晴' in weather_info:
         advice.append("天氣狀況「晴」:\n配件：戴帽子、太陽眼鏡、使用防曬霜。\n活動：避免中午時段在戶外活動，適合晨間和晚間運動。")
     elif '陰' in weather_info:
-        advice.append("天氣狀況「陰」:\n配件：攜帶輕便外套或毛衣。\n活動：適合全天候戶外活動，注意天氣變化。")
+        advice.append("天氣狀況「陰」:\n配件：攜帶輕便雨衣或雨傘。\n活動：適合全天候戶外活動，注意天氣變化。")
     elif '多雲' in weather_info:
         advice.append("天氣狀況「多雲」:\n配件：攜帶小型折疊傘，備用雨具。\n活動：適合戶外活動，但要注意雲層變化，隨時準備應對降雨。")
     elif '雨' in weather_info:
