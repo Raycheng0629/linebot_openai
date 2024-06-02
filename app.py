@@ -452,7 +452,7 @@ def generate_health_advice(weather_info, temp, rain_prob, aqi):
 
 
     # AQI advice
-    if 0 <= aqi <= 50:
+    if 1 <= aqi <= 50:
         advice.append(f"AQI 值 {aqi}:\n空氣質量優良，適合所有戶外活動。")
     elif 51 <= aqi <= 100:
         advice.append(f"AQI 值 {aqi}:\n空氣質量尚可，一般人群可以正常活動，敏感人群（如老人、小孩、呼吸道疾病患者）外出時應減少高強度戶外活動。")
